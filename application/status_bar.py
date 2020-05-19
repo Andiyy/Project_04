@@ -3,16 +3,19 @@
 
 """Creation and implementation of the menu."""
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 
 
 class Statusbar(QtWidgets.QStatusBar):
     """The main class of the menu."""
 
-    def __init__(self, font, user):
+    def __init__(self, data):
         QtWidgets.QStatusBar.__init__(self)
 
-        self.setFont(font.calibir_12)
+        self.setFont(QtGui.QFont('Calibri', 12))
 
-        self.lbl_user = QtWidgets.QLabel(user.u_name)
+        self.lbl_version = QtWidgets.QLabel('  Version: 1.0  ')
+        self.addPermanentWidget(self.lbl_version)
+
+        self.lbl_user = QtWidgets.QLabel(f'  {data.user.u_name}  ')
         self.addPermanentWidget(self.lbl_user)

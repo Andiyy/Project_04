@@ -3,21 +3,18 @@
 
 """Creating the new frame."""
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 
 
 class FrameNew(QtWidgets.QFrame):
     """The visual layout of the GUI."""
-    def __init__(self, font):
+    def __init__(self):
         QtWidgets.QFrame.__init__(self)
 
-        self.setFont(font.calibir_12)
+        self.setFont(QtGui.QFont('Calibri', 12))
 
         lbl = QtWidgets.QLabel('New')
 
         grid_layout = QtWidgets.QGridLayout(self)
         grid_layout.addWidget(lbl)
-
-    def new_measurement(self):
-        """Creating a new measurement in the database."""
 

@@ -11,22 +11,22 @@ import sys
 
 class Menu(QtWidgets.QMenuBar):
     """The main class of the menu."""
-    def __init__(self, font):
+    def __init__(self):
         QtWidgets.QMenuBar.__init__(self)
-
-        self.font = font
 
         self.create_widgets()
         self.connect_menu()
 
     def create_widgets(self):
         """Creating the widgets."""
-        self.setFont(self.font.calibir_12)
+        font = QtGui.QFont('Calibri', 12)
+
+        self.setFont(font)
 
         # Settings:
         menu_file = QtWidgets.QMenu(self)
         menu_file.setTitle('File')
-        menu_file.setFont(self.font.calibir_12)
+        menu_file.setFont(font)
 
         self.menu_close = QtWidgets.QAction('Close', self)
         self.menu_close.setShortcutVisibleInContextMenu(True)
@@ -36,7 +36,7 @@ class Menu(QtWidgets.QMenuBar):
         # Tutorial:
         menu_tutorial = QtWidgets.QMenu(self)
         menu_tutorial.setTitle('Tutorial')
-        menu_tutorial.setFont(self.font.calibir_12)
+        menu_tutorial.setFont(font)
 
         self.menu_getting_started = QtWidgets.QAction('Getting Started', self)
         self.menu_getting_started.setShortcutVisibleInContextMenu(True)

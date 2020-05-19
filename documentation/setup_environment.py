@@ -14,4 +14,5 @@ def install_module(module: str):
 
 if __name__ == '__main__':
     install_module('PyQt5')
-    install_module('pyqtgraph')
+    install_module('numpy')
+    install_module('matplotlib')

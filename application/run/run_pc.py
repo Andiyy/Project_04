@@ -45,14 +45,15 @@ class RunProgram:
 
     def _write_data(self):
         """Writing the data into the database."""
+        with open_sqlite3() as cursor:
+            for value in self.data.measured_values['Current']:
+                cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
+                               (self.data.new_measurement.h_id, 1, value))
 
         with open_sqlite3() as cursor:
-            cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
-                           (self.data.new_measurement.h_id, 1, self.data.measured_values['Current']))
-
-        with open_sqlite3() as cursor:
-            cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
-                           (self.data.new_measurement.h_id, 2, self.data.measured_values['Voltage']))
+            for value in self.data.measured_values['Voltage']:
+                cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
+                               (self.data.new_measurement.h_id, 2, value))
 
         # with open_sqlite3() as cursor:
             # cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',

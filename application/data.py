@@ -11,3 +11,4 @@ class Data:
         self.measured_values = None
 
         self.old_measurement = []
+        self.plot_measurement = {'m_header': None, 'Voltage': None, 'Current': None, 'Time': None}

@@ -3,7 +3,7 @@
 """The main application."""
 
 from application import main_window, menu, status_bar, data
-from application.frames import frame_sidebar, frame_new, frame_open
+from application.frames import frame_sidebar, frame_new, frame_open, frame_plot
 from application.dialogs import user_dialog, new_measurement_dialog
 from application.run import run_pc
 
@@ -37,7 +37,8 @@ class Application(main_window.MainWindow):
 
         self.frame_sidebar = frame_sidebar.FrameSidebar()
         self.frame_new = frame_new.FrameNew()
-        self.frame_open = frame_open.FrameOpen(data=self.data)
+        self.frame_open = frame_open.FrameOpen(data=self.data, main_window=self)
+        self.frame_plot = frame_plot.FramePlot(data=self.data)
 
         self.central_layout.addWidget(self.frame_sidebar, 2, 0)  # Adding the frame to the main window
 
@@ -76,3 +77,5 @@ class Application(main_window.MainWindow):
 
         run_program = run_pc.RunProgram(data=self.data)
         run_program.start()
+        self.frame_plot.show()
+        self.frame_plot.plot()

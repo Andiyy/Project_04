@@ -13,14 +13,11 @@ import numpy as np
 class FrameOpen(QtWidgets.QFrame):
     """The visual layout of the GUI."""
 
-    def __init__(self, data):
+    def __init__(self, data, main_window):
         QtWidgets.QFrame.__init__(self)
 
         self.data = data
-
-        self._x_time = None
-        self._y_voltage = None
-        self._y_current = None
+        self.main_window = main_window
 
         self.setFont(QtGui.QFont('Calibri', 12))
 
@@ -37,18 +34,19 @@ class FrameOpen(QtWidgets.QFrame):
 
     def connect_methods(self):
         """Connecting the widgets to the methods."""
-        self.list_widget.doubleClicked.connect(self.lw_open_old)
+        self.list_widget.doubleClicked.connect(self._lw_open_old)
 
-    def lw_open_old(self):
+    def _lw_open_old(self):
         """Open the old measurement."""
         index = self.list_widget.currentRow()
         self.data.plot_measurement['m_header'] = self.data.old_measurement[index]
 
         step = self.data.plot_measurement['m_header'].h_step
         amount_steps = int(5 / step + 1)
-        self._x_time = np.arange(0, 5.001, step)
-        self._y_voltage = np.zeros(amount_steps)
-        self._y_current = np.zeros(amount_steps)
+
+        self.data.plot_measurement['Time'] = np.arange(0, 5.001, step)
+        self.data.plot_measurement['Current'] = np.zeros(amount_steps)
+        self.data.plot_measurement['Voltage'] = np.zeros(amount_steps)
 
         # Database:
         with open_sqlite3() as cursor:
@@ -57,7 +55,7 @@ class FrameOpen(QtWidgets.QFrame):
             data = cursor.fetchall()
 
         for line, row in enumerate(data):
-            self._y_current[line] = row[0]
+            self.data.plot_measurement['Current'][line] = row[0]
 
         with open_sqlite3() as cursor:
             cursor.execute('SELECT d_value FROM m_data WHERE h_id=? AND s_id=?',
@@ -65,9 +63,18 @@ class FrameOpen(QtWidgets.QFrame):
             data = cursor.fetchall()
 
         for line, row in enumerate(data):
-            self._y_voltage[line] = row[0]
+            self.data.plot_measurement['Voltage'][line] = row[0]
 
-        self.plot_data()
+        self.open_plot()
+
+    def open_plot(self):
+        """Opening the plot frame."""
+        self.main_window.central_layout.removeWidget(self)
+        self.hide()
+
+        self.main_window.central_layout.addWidget(self.main_window.frame_plot, 2, 2, 1, 2)
+        self.main_window.frame_plot.show()
+        self.main_window.frame_plot.plot()
 
     def lw_load_data(self):
         """Loading the data into the list widget."""
@@ -84,20 +91,3 @@ class FrameOpen(QtWidgets.QFrame):
         for row in data:
             self.data.old_measurement.append(m_header(*row))
             self.list_widget.addItem(f'ID: {row[0]} | Date: {row[2]} | Weight: {row[3]}')
-
-    def plot_data(self):
-        """Showing the data in a plot."""
-        plt.subplot(2, 1, 1)
-        plt.plot(self._x_time, self._y_current, 'o-')
-        plt.title('Strom-Zeit-Diagramm')
-        plt.xlabel('Zeit in s')
-        plt.ylabel('Strom in A')
-
-        plt.subplot(2, 1, 2)
-        plt.plot(self._x_time, self._y_voltage, 'o-')
-        plt.title('Spannung-Zeit-Diagramm')
-        plt.xlabel('Zeit in s')
-        plt.ylabel('Spannung in V')
-
-        plt.show()
-

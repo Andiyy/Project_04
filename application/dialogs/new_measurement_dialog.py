@@ -33,22 +33,22 @@ class NewMeasurement(QtWidgets.QDialog):
         self.sb_step.setSingleStep(0.01)
         self.sb_step.setMaximum(1)
 
-        self.pb_start = QtWidgets.QPushButton()
-        self.pb_start.setText('Start')
-        self.pb_start.clicked.connect(self._button_start)
+        self.pb_create = QtWidgets.QPushButton()
+        self.pb_create.setText('Create')
+        self.pb_create.clicked.connect(self._button_create)
 
         grid_layout = QtWidgets.QGridLayout(self)
         grid_layout.addWidget(lbl_weight, 0, 0)
         grid_layout.addWidget(self.sb_weight, 0, 1)
         grid_layout.addWidget(lbl_test_step, 1, 0)
         grid_layout.addWidget(self.sb_step, 1, 1)
-        grid_layout.addWidget(self.pb_start, 2, 1)
+        grid_layout.addWidget(self.pb_create, 2, 1)
 
     def set_data(self, data):
         """Creating the data object."""
         self.data = data
 
-    def _button_start(self):
+    def _button_create(self):
         """Button Start."""
         weight = self.sb_weight.value()
         step = self.sb_step.value()

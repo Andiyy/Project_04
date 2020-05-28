@@ -6,6 +6,7 @@ import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 import RPi.GPIO as GPIO
+from multiprocessing import Process, Manager
 
 
 class RunProgram:
@@ -22,21 +23,22 @@ class RunProgram:
     RELAY2 = 24
 
     """"""
+
     def __init__(self, time_step):
-         # Time/Steps:
-         self._time_step = time_step
-         self._amount_steps = int(5 / self._time_step + 1)
-         self._current_step = 0
-         self._rpm = 0
+        # Time/Steps:
+        self._time_step = time_step
+        self._amount_steps = int(5 / self._time_step + 1)
+        self._current_step = 0
+        self._rpm = 0
 
-         # Creating the arrays:
-         self._y_voltage = np.zeros(self._amount_steps)
-         self._y_current = np.zeros(self._amount_steps)
-         self._x_time = np.arange(0, 5.001, self._time_step)
+        # Creating the arrays:
+        self._y_voltage = np.zeros(self._amount_steps)
+        self._y_current = np.zeros(self._amount_steps)
+        self._x_time = np.arange(0, 5.001, self._time_step)
 
-         self._data = {'Voltage': self._y_voltage, 'Current': self._y_current, 'Time': self._x_time}
-         
-         self._setup_pi()
+        self._data = {'Voltage': self._y_voltage, 'Current': self._y_current, 'Time': self._x_time}
+
+        self._setup_pi()
 
     def _setup_pi(self):
         """Setup for the GPIOs."""
@@ -45,9 +47,9 @@ class RunProgram:
         GPIO.setup(self.RELAY2, GPIO.OUT)
         GPIO.output(self.RELAY1, GPIO.LOW)
         GPIO.output(self.RELAY2, GPIO.LOW)
-        
+
         # RPM: 
-        GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)    
+        GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(17, GPIO.FALLING, bouncetime=25)
 
     @staticmethod
@@ -76,10 +78,16 @@ class RunProgram:
         """Returning the dictionary."""
         return self._data
 
+    def thread_cur_vol(self):
+        """"""
+
+    def thread_rpm(self):
+        """"""
+
     def run_program(self):
         """Running the Program."""
         self.turn(23, True)
-        
+
         for current_step in range(self._amount_steps):
             # Current:
             current_voltage = (self.CHAN2.voltage) * 1000
@@ -89,17 +97,17 @@ class RunProgram:
             # Voltage:
             voltage = self.CHAN3.voltage * 3
             self._y_voltage[current_step] = voltage
-            
+
             if GPIO.event_detected(17):
                 self._rpm += 1
                 print(self._rpm)
-                
+
             time.sleep(self._time_step)
-        
+
         self.turn(23, False)
-        
+
         time.sleep(1)
-        
+
         self.turn(24, True)
         time.sleep(4.4)
         self.turn(24, False)
@@ -109,4 +117,4 @@ class RunProgram:
 test = RunProgram(1)
 test.run_program()
 
-a = test.return_values 
+a = test.return_values

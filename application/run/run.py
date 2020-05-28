@@ -25,7 +25,7 @@ class RunProgram:
     def __init__(self, time_step):
         # Time/Steps:
         self._time_step = time_step
-        self._amount_steps = int(10 / self._time_step + 1)
+        self._amount_steps = int(5 / self._time_step + 1)
         self._current_step = 0
 
         # Creating the arrays:
@@ -35,9 +35,10 @@ class RunProgram:
 
         self._data = {'Voltage': self._y_voltage, 'Current': self._y_current, 'Time': self._x_time}
 
-    def setup_pi(self):
+        self._setup_pi()
+
+    def _setup_pi(self):
         """Setup for the GPIOs."""
-        GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.RELAY1, GPIO.OUT)
         GPIO.setup(self.RELAY2, GPIO.OUT)
         GPIO.output(self.RELAY1, GPIO.LOW)
@@ -69,30 +70,41 @@ class RunProgram:
         """Returning the dictionary."""
         return self._data
 
+    def process_voltage(self, y_voltage):
+        """"""
+        for current_step in range(self._amount_steps):
+            # Voltage:
+            voltage = self.CHAN3.voltage * 3
+            y_voltage[current_step] = voltage
+
+    def process_current(self):
+        """"""
+
+    def process_rpm(self):
+        """"""
+
     def run_program(self):
         """Running the Program."""
         start = time.time()
+        self.run(self.RELAY1, True)
         for current_step in range(self._amount_steps):
             # Current:
-            current = (self.CHAN2.voltage / 4095) * 5000
+            current_voltage = self.CHAN2.voltage * 1000
+            current = (current_voltage - 2585) / 187.5
             self._y_current[current_step] = current
 
-            # Voltage:
-            voltage = self.CHAN3.voltage * 3
-            self._y_voltage[current_step] = voltage
+
 
             time.sleep(self._time_step)
 
-        print(start-time.time())
+        self.run(self.RELAY1, False)
+        print(time.time()+start)
 
 
 test = RunProgram(1)
-test.run(test.RELAY1, True)
+test.run_program()
 time.sleep(1)
-test.run(test.RELAY1, False)
-
-time.sleep(2)
 
 test.run(test.RELAY2, True)
-time.sleep(1)
+time.sleep(3)
 test.run(test.RELAY2, False)

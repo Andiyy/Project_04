@@ -61,18 +61,18 @@ class Application(main_window.MainWindow):
 
     def _button_h_new(self):
         """Updating the main window and showing the new frame."""
+        dialog = new_measurement_dialog.NewMeasurement()
+        dialog.set_data(data=self.data)
+        if dialog.exec_() != QtWidgets.QDialog.Accepted:
+            return
+        del dialog
+
         self.central_layout.removeWidget(self.frame_open)
         self.frame_open.hide()
 
         self.central_layout.addWidget(self.frame_new, 2, 2, 1, 2)
         self.frame_new.show()
         self.lbl_header.setText('New Measurement')
-
-        dialog = new_measurement_dialog.NewMeasurement()
-        dialog.set_data(data=self.data)
-        if dialog.exec_() != QtWidgets.QDialog.Accepted:
-            return
-        del dialog
 
         self.frame_new.update_widgets()
 

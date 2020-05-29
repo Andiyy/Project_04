@@ -4,6 +4,7 @@
 """Creating the new frame."""
 
 from application.run.run import RunProgram
+from database.database import open_sqlite3
 
 from PyQt5 import QtWidgets, QtGui
 
@@ -46,13 +47,29 @@ class FrameNew(QtWidgets.QFrame):
         self.run = RunProgram(data=self.data)
         self.run.run_program()
 
+        self._write_data()
+
     def _button_up(self):
         """Moving up."""
 
     def _button_down(self):
         """Moving down."""
 
+    def _write_data(self):
+        """'Writing the data into the database."""
+        with open_sqlite3() as cursor:
+            for value in self.data.measured_values['Current']:
+                cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
+                               (self.data.new_measurement.h_id, 1, value))
 
+        with open_sqlite3() as cursor:
+            for value in self.data.measured_values['Voltage']:
+                cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
+                               (self.data.new_measurement.h_id, 2, value))
+
+        # with open_sqlite3() as cursor:
+        # cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
+        #                (self.data.new_measurement.h_id, 3, self.data.measured_values['Current']))
 
 
 

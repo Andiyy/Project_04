@@ -28,7 +28,6 @@ class RunProgram:
 
         # Time/Steps:
         self._amount_steps = int(5 / self.data.new_measurement.h_step + 1)
-        self._current_step = 0
 
         # Creating the arrays:
         self._y_voltage = None
@@ -81,6 +80,7 @@ class RunProgram:
             # time.sleep(self.data.new_measurement.h_step)
 
         queue.put(y_voltage)
+        print(y_voltage)
         print('Voltage, Finish')
 
     def _process_current(self, queue):
@@ -94,6 +94,7 @@ class RunProgram:
             # time.sleep(self.data.new_measurement.h_step)
 
         queue.put(y_current)
+        print(y_current)
         print('Current, Finish')
 
     def _process_rpm(self, queue):
@@ -136,3 +137,7 @@ class RunProgram:
         self.run(self.RELAY2, True)
         time.sleep(3)
         self.run(self.RELAY2, False)
+
+        print(self._y_voltage)
+        print(self._y_current)
+        print(self._y_rpm)

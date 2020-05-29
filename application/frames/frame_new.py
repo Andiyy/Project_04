@@ -3,15 +3,19 @@
 
 """Creating the new frame."""
 
+from application.run.run import RunProgram
+
 from PyQt5 import QtWidgets, QtGui
 
 
 class FrameNew(QtWidgets.QFrame):
     """The visual layout of the GUI."""
-    def __init__(self):
+    def __init__(self, data):
         QtWidgets.QFrame.__init__(self)
         self._create_widgets()
         self._connect_methods()
+
+        self.run = RunProgram(data=data)
 
     def _create_widgets(self):
         """Creating the widgets."""
@@ -38,6 +42,7 @@ class FrameNew(QtWidgets.QFrame):
 
     def _button_start(self):
         """Starting the measurement."""
+        self.run.run_program()
 
     def _button_up(self):
         """Moving up."""

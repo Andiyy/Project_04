@@ -1,54 +1,93 @@
-import sys
-
-from PyQt5 import QtWidgets
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
-
-import pandas as pd
+from multiprocessing import Process, Queue, Value
+import numpy as np
+import time
 
 
-class MplCanvas(FigureCanvasQTAgg):
+class Test12:
+    steps = 10
+    b = np.zeros(steps)
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        super(MplCanvas, self).__init__(fig)
+    def run(self):
+        q_1 = Queue()
+        q_2 = Queue()
+
+        p_1 = Process(target=self.f, args=(q_1,))
+        p_2 = Process(target=self.f_2, args=(q_2,))
+
+        p_1.start()
+        p_2.start()
+
+        a = q_1.get()  # prints "[42, None, 'hello']"
+        b = q_2.get()  # prints "[42, None, 'hello']"
+        p_1.join()
+        p_2.join()
+
+        print(a)
+        print(b)
+
+    def f(self, q):
+        a = np.zeros(self.steps)
+
+        for i in range(self.steps):
+            a[i] = i
+            self.b[i] = i
+
+        q.put(a)
+        time.sleep(2)
+        print(2)
+
+    def f_2(self, q):
+        a = np.zeros(self.steps)
+
+        for i in range(self.steps):
+            a[i] = i
+
+        q.put(a)
+
+        print(1)
 
 
-class MainWindow(QtWidgets.QMainWindow):
-
-    def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
-
-        # Create the maptlotlib FigureCanvas object,
-        # which defines a single set of axes as self.axes.
-        sc = MplCanvas(self, width=5, height=4, dpi=100)
-
-        # Create our pandas DataFrame with some simple
-        # data and headers.
-        df = pd.DataFrame([0, 10], [5, 15], columns=['Current'])
-
-        # plot the pandas DataFrame, passing in the
-        # matplotlib Canvas axes.
-        df.plot(ax=sc.axes, title='Time-Current-Diagram', grid=True)
-
-        # Create toolbar, passing canvas as first parament, parent (self, the MainWindow) as second.
-        toolbar = NavigationToolbar(sc, self)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(toolbar)
-        layout.addWidget(sc)
-
-        # Create a placeholder widget to hold our toolbar and canvas.
-        widget = QtWidgets.QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
-        self.show()
+if __name__ == '__main__':
+    a = Test12()
+    a.run()
 
 
-app = QtWidgets.QApplication(sys.argv)
-w = MainWindow()
-app.exec_()
 
-# https://www.learnpyqt.com/courses/graphics-plotting/plotting-matplotlib/
+
+# from multiprocessing import Process, Pipe
+# import time
+#
+#
+# def f(conn):
+#     conn.send([42, None, 'hello'])
+#
+#     time.sleep(2)
+#     print(2)
+#     conn.close()
+#
+#
+# if __name__ == '__main__':
+#     parent_conn, child_conn = Pipe()
+#     p = Process(target=f, args=(child_conn,))
+#     p.start()
+#     print(parent_conn.recv())   # prints "[42, None, 'hello']"
+#     p.join()
+#     print(1)
+
+# from multiprocessing import Process, Value, Array
+#
+# def f(n, a):
+#     n.value = 3.1415927
+#     for i in range(len(a)):
+#         a[i] = -a[i]
+#
+# if __name__ == '__main__':
+#     num = Value('d', 0.0)
+#     arr = Array('i', range(10))
+#
+#     p = Process(target=f, args=(num, arr))
+#     p.start()
+#     p.join()
+#
+#     print(num.value)
+#     print(arr[:])

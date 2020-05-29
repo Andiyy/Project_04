@@ -5,6 +5,7 @@ import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 import RPi.GPIO as GPIO
+from multiprocessing import Process, Queue
 
 
 class RunProgram:
@@ -22,18 +23,21 @@ class RunProgram:
 
     """"""
 
-    def __init__(self, time_step):
+    def __init__(self, data):
+        self.data = data
+
         # Time/Steps:
-        self._time_step = time_step
-        self._amount_steps = int(5 / self._time_step + 1)
+        self._amount_steps = int(5 / self.data.new_measurement.h_step + 1)
         self._current_step = 0
 
         # Creating the arrays:
-        self._y_voltage = np.zeros(self._amount_steps)
-        self._y_current = np.zeros(self._amount_steps)
-        self._x_time = np.arange(0, 5.001, self._time_step)
+        self._y_voltage = None
+        self._y_current = None
+        self._y_rpm = None
+        self._x_time = np.arange(0, 5.001, self.data.new_measurement.h_step)
 
-        self._data = {'Voltage': self._y_voltage, 'Current': self._y_current, 'Time': self._x_time}
+        self.data.measured_values = {'Voltage': self._y_voltage, 'Current': self._y_current, 'Time': self._x_time,
+                                     'RPM': self._y_rpm}
 
         self._setup_pi()
 
@@ -66,45 +70,56 @@ class RunProgram:
         GPIO.output(self.RELAY2, GPIO.LOW)
         GPIO.cleanup()
 
-    def return_values(self) -> dict:
-        """Returning the dictionary."""
-        return self._data
-
-    def process_voltage(self, y_voltage):
+    def _process_voltage(self, queue):
         """"""
-        for current_step in range(self._amount_steps):
-            # Voltage:
+        y_voltage = np.zeros(self._amount_steps)
+        for step in range(self._amount_steps):
             voltage = self.CHAN3.voltage * 3
-            y_voltage[current_step] = voltage
+            y_voltage[step] = voltage
+            # time.sleep(self.data.new_measurement.h_step)
 
-    def process_current(self):
-        """"""
+        queue.put(y_voltage)
 
-    def process_rpm(self):
+    def _process_current(self, queue):
         """"""
+        y_current = np.zeros(self._amount_steps)
+        for step in range(self._amount_steps):
+            current_voltage = self.CHAN2.voltage * 1000
+            current = (current_voltage - 2585) / 187.5
+            y_current[step] = current
+            # time.sleep(self.data.new_measurement.h_step)
+
+        queue.put(y_current)
+
+    def _process_rpm(self, queue):
+        """"""
+        a = 0
+        while True:
+            a += 1
+            queue.put(a)
+            time.sleep(1)
 
     def run_program(self):
         """Running the Program."""
-        start = time.time()
+        q_voltage = Queue()
+        q_current = Queue()
+        q_rpm = Queue()
+
+        p_voltage = Process(target=self._process_voltage, args=(q_voltage,))
+        p_current = Process(target=self._process_current, args=(q_current,))
+        p_rpm = Process(target=self._process_rpm, args=(q_rpm,))
+
+        p_voltage.start()
+        p_current.start()
+        p_rpm.start()
         self.run(self.RELAY1, True)
-        for current_step in range(self._amount_steps):
-            # Current:
-            current_voltage = self.CHAN2.voltage * 1000
-            current = (current_voltage - 2585) / 187.5
-            self._y_current[current_step] = current
 
+        self._y_voltage = q_voltage.get()
+        self._y_current = q_current.get()
+        self._y_rpm = q_rpm.get()
 
-
-            time.sleep(self._time_step)
+        p_voltage.join()
+        p_current.join()
+        p_rpm.kill()
 
         self.run(self.RELAY1, False)
-        print(time.time()+start)
-
-
-test = RunProgram(1)
-test.run_program()
-time.sleep(1)
-
-test.run(test.RELAY2, True)
-time.sleep(3)
-test.run(test.RELAY2, False)

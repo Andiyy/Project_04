@@ -35,7 +35,7 @@ class Application(main_window.MainWindow):
         self.setStatusBar(self.status_bar)
 
         self.frame_sidebar = frame_sidebar.FrameSidebar()
-        self.frame_new = frame_new.FrameNew()
+        self.frame_new = frame_new.FrameNew(data=self.data)
         self.frame_open = frame_open.FrameOpen(data=self.data, main_window=self)
         self.frame_plot = frame_plot.FramePlot(data=self.data)
 

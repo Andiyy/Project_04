@@ -118,6 +118,7 @@ class RunProgram:
         p_voltage.start()
         p_current.start()
         p_rpm.start()
+        start = time.time()
         self.run(self.RELAY1, True)
 
         self._y_voltage = q_voltage.get()
@@ -129,6 +130,7 @@ class RunProgram:
         p_rpm.kill()
 
         self.run(self.RELAY1, False)
+        print(f'Time: {time.time()-start}')
 
         time.sleep(1)
         self.run(self.RELAY2, True)

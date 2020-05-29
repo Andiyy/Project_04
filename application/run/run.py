@@ -58,7 +58,7 @@ class RunProgram:
 
         GPIO.output(relay, mode)
 
-    def destroy(self):
+    def _destroy(self):
         """Raspberry Pi output on LOW."""
         GPIO.output(self.RELAY1, GPIO.LOW)
         GPIO.output(self.RELAY2, GPIO.LOW)
@@ -101,7 +101,7 @@ class RunProgram:
         time.sleep(10)
         print('RPM, Finish')
 
-    def run_program(self):
+    def _run_program(self):
         """Running the Program."""
         q_voltage = Queue()
         q_current = Queue()
@@ -132,3 +132,35 @@ class RunProgram:
         self.run(self.RELAY2, True)
         time.sleep(3)
         self.run(self.RELAY2, False)
+        self._destroy()
+
+    def run_program(self):
+        y_current = np.zeros(self._amount_steps)
+        y_voltage = np.zeros(self._amount_steps)
+
+        self.run(self.RELAY1, True)
+
+        for current_step in range(self._amount_steps):
+            # Current:
+            current_voltage = (self.CHAN2.voltage) * 1000
+            current = (current_voltage - 2585) / 187.5
+            y_current[current_step] = current
+
+            # Voltage:
+            voltage = self.CHAN3.voltage * 3
+            y_voltage[current_step] = voltage
+
+            time.sleep(self.data.new_measurement.h_step)
+
+        self.run(self.RELAY1, False)
+
+        time.sleep(1)
+
+        self.run(self.RELAY2, True)
+        time.sleep(4.4)
+        self.run(self.RELAY2, False)
+        self._destroy()
+
+        self.data.measured_values['Voltage'] = y_voltage
+        self.data.measured_values['Current'] = y_current
+        self.data.measured_values['RPM'] = None

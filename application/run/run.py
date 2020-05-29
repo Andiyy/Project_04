@@ -72,6 +72,8 @@ class RunProgram:
 
     def _process_voltage(self, queue):
         """"""
+        print('Voltage, Start')
+
         y_voltage = np.zeros(self._amount_steps)
         for step in range(self._amount_steps):
             voltage = self.CHAN3.voltage * 3
@@ -79,9 +81,11 @@ class RunProgram:
             # time.sleep(self.data.new_measurement.h_step)
 
         queue.put(y_voltage)
+        print('Voltage, Finish')
 
     def _process_current(self, queue):
         """"""
+        print('Current, Start')
         y_current = np.zeros(self._amount_steps)
         for step in range(self._amount_steps):
             current_voltage = self.CHAN2.voltage * 1000
@@ -90,14 +94,16 @@ class RunProgram:
             # time.sleep(self.data.new_measurement.h_step)
 
         queue.put(y_current)
+        print('Current, Finish')
 
     def _process_rpm(self, queue):
         """"""
+        print('RPM, Start')
         a = 0
-        while True:
-            a += 1
-            queue.put(a)
-            time.sleep(1)
+        a += 1
+        queue.put(a)
+        time.sleep(10)
+        print('RPM, Finish')
 
     def run_program(self):
         """Running the Program."""
@@ -123,3 +129,8 @@ class RunProgram:
         p_rpm.kill()
 
         self.run(self.RELAY1, False)
+
+        time.sleep(1)
+        self.run(self.RELAY2, True)
+        time.sleep(3)
+        self.run(self.RELAY2, False)

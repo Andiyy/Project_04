@@ -15,7 +15,8 @@ class FrameNew(QtWidgets.QFrame):
         self._create_widgets()
         self._connect_methods()
 
-        self.run = RunProgram(data=data)
+        self.data = data
+        self.run = None
 
     def _create_widgets(self):
         """Creating the widgets."""
@@ -42,6 +43,7 @@ class FrameNew(QtWidgets.QFrame):
 
     def _button_start(self):
         """Starting the measurement."""
+        self.run = RunProgram(data=self.data)
         self.run.run_program()
 
     def _button_up(self):

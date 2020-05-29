@@ -41,6 +41,9 @@ class FramePlot(QtWidgets.QFrame):
         ax = self.figure.add_subplot(111)
         ax.plot(self.data.plot_measurement['Time'], self.data.plot_measurement['Voltage'], '*-')
 
+        ax = self.figure.add_subplot(111)
+        ax.plot(self.data.plot_measurement['Time'], self.data.plot_measurement['Current'], '*-')
+
         # refresh canvas
         self.canvas.draw()
 

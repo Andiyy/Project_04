@@ -29,14 +29,9 @@ class RunProgram:
         # Time/Steps:
         self._amount_steps = int(5 / self.data.new_measurement.h_step + 1)
 
-        # Creating the arrays:
-        self._y_voltage = None
-        self._y_current = None
-        self._y_rpm = None
         self._x_time = np.arange(0, 5.001, self.data.new_measurement.h_step)
 
-        self.data.measured_values = {'Voltage': self._y_voltage, 'Current': self._y_current, 'Time': self._x_time,
-                                     'RPM': self._y_rpm}
+        self.data.measured_values = {'Voltage': None, 'Current': None, 'Time': self._x_time, 'RPM': None}
 
         self._setup_pi()
 
@@ -122,9 +117,9 @@ class RunProgram:
         start = time.time()
         self.run(self.RELAY1, True)
 
-        self._y_voltage = q_voltage.get()
-        self._y_current = q_current.get()
-        self._y_rpm = q_rpm.get()
+        self.data.measured_values['Voltage'] = q_voltage.get()
+        self.data.measured_values['Current'] = q_current.get()
+        self.data.measured_values['RPM'] = q_rpm.get()
 
         p_voltage.join()
         p_current.join()
@@ -137,7 +132,3 @@ class RunProgram:
         self.run(self.RELAY2, True)
         time.sleep(3)
         self.run(self.RELAY2, False)
-
-        print(self._y_voltage)
-        print(self._y_current)
-        print(self._y_rpm)

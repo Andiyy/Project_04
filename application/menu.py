@@ -14,10 +14,10 @@ class Menu(QtWidgets.QMenuBar):
     def __init__(self):
         QtWidgets.QMenuBar.__init__(self)
 
-        self.create_widgets()
-        self.connect_menu()
+        self._create_widgets()
+        self._connect_menu()
 
-    def create_widgets(self):
+    def _create_widgets(self):
         """Creating the widgets."""
         font = QtGui.QFont('Calibri', 12)
 
@@ -47,7 +47,7 @@ class Menu(QtWidgets.QMenuBar):
         self.addMenu(menu_file)
         self.addMenu(menu_tutorial)
 
-    def connect_menu(self):
+    def _connect_menu(self):
         """Connecting the menu widgets to the methods."""
         self.menu_close.triggered.connect(self.triggered_menu_close)
         self.menu_close.setShortcut(QtGui.QKeySequence('Ctrl+Q'))

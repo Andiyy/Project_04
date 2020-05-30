@@ -11,9 +11,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
 
-        self.setup_main_window()
+        self._setup_main_window()
 
-    def setup_main_window(self):
+    def _setup_main_window(self):
         """Setting up the main window."""
         self.setWindowTitle('Projekt 04 - Team MM 1')
 

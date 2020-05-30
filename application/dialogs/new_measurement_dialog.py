@@ -16,10 +16,9 @@ class NewMeasurement(QtWidgets.QDialog):
         super(NewMeasurement, self).__init__(*args, **kwargs)
 
         self.data = None
+        self._create_widgets()
 
-        self.create_widgets()
-
-    def create_widgets(self):
+    def _create_widgets(self):
         """Creating the widgets."""
         self.setWindowTitle('New Measurement')
         self.setFont(QtGui.QFont('Calibri', 12))
@@ -28,20 +27,19 @@ class NewMeasurement(QtWidgets.QDialog):
         self.sb_weight = QtWidgets.QSpinBox()
         self.sb_weight.setMaximum(10)
 
-        lbl_test_step = QtWidgets.QLabel('Steps:')
-        self.sb_step = QtWidgets.QDoubleSpinBox()
-        self.sb_step.setSingleStep(0.01)
-        self.sb_step.setMaximum(1)
+        lbl_length = QtWidgets.QLabel('Length:')
+        self.sb_length = QtWidgets.QSpinBox()
+        self.sb_length.setMinimum(1)
+        self.sb_length.setMaximum(5)
 
-        self.pb_create = QtWidgets.QPushButton()
-        self.pb_create.setText('Create')
+        self.pb_create = QtWidgets.QPushButton('Create')
         self.pb_create.clicked.connect(self._button_create)
 
         grid_layout = QtWidgets.QGridLayout(self)
         grid_layout.addWidget(lbl_weight, 0, 0)
         grid_layout.addWidget(self.sb_weight, 0, 1)
-        grid_layout.addWidget(lbl_test_step, 1, 0)
-        grid_layout.addWidget(self.sb_step, 1, 1)
+        grid_layout.addWidget(lbl_length, 1, 0)
+        grid_layout.addWidget(self.sb_length, 1, 1)
         grid_layout.addWidget(self.pb_create, 2, 1)
 
     def set_data(self, data):
@@ -51,20 +49,20 @@ class NewMeasurement(QtWidgets.QDialog):
     def _button_create(self):
         """Button Start."""
         weight = self.sb_weight.value()
-        step = self.sb_step.value()
+        length = self.sb_length.value()
 
-        self._create_new_measurement(weight=weight, step=step)
+        self._create_new_measurement(weight=weight, length=length)
 
         self.accept()
 
-    def _create_new_measurement(self, weight: int, step: float):
+    def _create_new_measurement(self, weight: int, length: int):
         """Creating a new measurement in the database."""
-        tuple_data = namedtuple('m_header', ['h_id', 'u_id', 'h_date', 'h_weight', 'h_step'])
+        tuple_data = namedtuple('m_header', ['h_id', 'u_id', 'h_date', 'h_weight', 'h_length'])
 
         h_id = len(self.data.old_measurement)
         h_date = str(datetime.datetime.today())[:9]
 
-        self.data.new_measurement = tuple_data(h_id, self.data.user.u_id, h_date, weight, step)
+        self.data.new_measurement = tuple_data(h_id, self.data.user.u_id, h_date, weight, length)
 
         with open_sqlite3() as cursor:
             cursor.execute('INSERT INTO m_header VALUES (?, ?, ?, ?, ?) ', self.data.new_measurement)

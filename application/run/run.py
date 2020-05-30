@@ -12,7 +12,6 @@ class RunProgram:
     # AD:
     I2C = busio.I2C(board.SCL, board.SDA)
     ADS_I2C = ADS.ADS1115(I2C)
-    # ADC = ADS.ADS1115()
     CHAN2 = AnalogIn(ADS_I2C, ADS.P2)  # current / Channel 2
     CHAN3 = AnalogIn(ADS_I2C, ADS.P3)  # voltage / Channel 3
     GAIN = 1
@@ -27,11 +26,13 @@ class RunProgram:
         self.data = data
 
         # Time/Steps:
-        self._amount_steps = int(5 / self.data.new_measurement.h_step + 1)
+        self._step = 0.02
+        self._amount_steps = int(self.data.new_measurement.h_length / self._step + 1)
 
-        self._x_time = np.arange(0, 5.001, self.data.new_measurement.h_step)
-
-        self.data.measured_values = {'Voltage': None, 'Current': None, 'Time': self._x_time, 'RPM': None}
+        self.data.measured_values = {'Voltage': None,
+                                     'Current': None,
+                                     'Time': np.arange(0, 5.001, self._step),
+                                     'RPM': None}
 
         self._setup_pi()
 
@@ -66,34 +67,33 @@ class RunProgram:
 
     def _process_voltage(self, queue):
         """"""
-        print('Voltage, Start')
-
         y_voltage = np.zeros(self._amount_steps)
         for step in range(self._amount_steps):
             voltage = self.CHAN3.voltage * 3
             y_voltage[step] = voltage
-            # time.sleep(self.data.new_measurement.h_step)
+            time.sleep(self._step)
 
         queue.put(y_voltage)
-        print(y_voltage)
-        print('Voltage, Finish')
 
     def _process_current(self, queue):
         """"""
-        print('Current, Start')
         y_current = np.zeros(self._amount_steps)
         for step in range(self._amount_steps):
             current_voltage = self.CHAN2.voltage * 1000
             current = (current_voltage - 2585) / 187.5
             y_current[step] = current
-            # time.sleep(self.data.new_measurement.h_step)
+            time.sleep(self._step)
 
         queue.put(y_current)
-        print(y_current)
-        print('Current, Finish')
 
     def _process_rpm(self, queue):
         """"""
+        # GPIO.setup(HallPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Set BtnPin's mode is input, and pull up to high level(3.3V)
+        # GPIO.add_event_detect(HallPin, GPIO.FALLING, callback=detect, bouncetime=25)
+        # if GPIO.event_detected(17):
+        #     self._rpm += 1
+        #     print(self._rpm)
+
         print('RPM, Start')
         a = 0
         a += 1
@@ -101,7 +101,7 @@ class RunProgram:
         time.sleep(10)
         print('RPM, Finish')
 
-    def _run_program(self):
+    def run_program(self):
         """Running the Program."""
         q_voltage = Queue()
         q_current = Queue()
@@ -130,11 +130,13 @@ class RunProgram:
 
         time.sleep(1)
         self.run(self.RELAY2, True)
-        time.sleep(3)
+        time.sleep(1)
         self.run(self.RELAY2, False)
         self._destroy()
 
-    def run_program(self):
+    def old_run_program(self):
+        """"""
+        # TODO: Remove before final version
         y_current = np.zeros(self._amount_steps)
         y_voltage = np.zeros(self._amount_steps)
 
@@ -150,7 +152,7 @@ class RunProgram:
             voltage = self.CHAN3.voltage * 3
             y_voltage[current_step] = voltage
 
-            time.sleep(self.data.new_measurement.h_step)
+            time.sleep(self._step)
 
         self.run(self.RELAY1, False)
 

@@ -16,9 +16,9 @@ class FramePlot(QtWidgets.QFrame):
 
         self.data = data
 
-        self.create_widgets()
+        self._create_widgets()
 
-    def create_widgets(self):
+    def _create_widgets(self):
         """Crating the widgets."""
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)

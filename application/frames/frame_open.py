@@ -21,18 +21,18 @@ class FrameOpen(QtWidgets.QFrame):
 
         self.setFont(QtGui.QFont('Calibri', 12))
 
-        self.create_widgets()
-        self.connect_methods()
+        self._create_widgets()
+        self._connect_methods()
         self.lw_load_data()
 
-    def create_widgets(self):
+    def _create_widgets(self):
         """Crating the widgets of the frame."""
         self.list_widget = QtWidgets.QListWidget()
 
         grid_layout = QtWidgets.QGridLayout(self)
         grid_layout.addWidget(self.list_widget)
 
-    def connect_methods(self):
+    def _connect_methods(self):
         """Connecting the widgets to the methods."""
         self.list_widget.doubleClicked.connect(self._lw_open_old)
 
@@ -65,9 +65,9 @@ class FrameOpen(QtWidgets.QFrame):
         for line, row in enumerate(data):
             self.data.plot_measurement['Voltage'][line] = row[0]
 
-        self.open_plot()
+        self._open_plot()
 
-    def open_plot(self):
+    def _open_plot(self):
         """Opening the plot frame."""
         self.main_window.central_layout.removeWidget(self)
         self.hide()

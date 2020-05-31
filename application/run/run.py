@@ -5,7 +5,8 @@ import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 import RPi.GPIO as GPIO
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Array
+from array import array
 
 
 class RunProgram:
@@ -26,12 +27,12 @@ class RunProgram:
         self.data = data
 
         # Time/Steps:
-        self._step = 0.02
+        self._step = 0.0221
         self._amount_steps = int(self.data.new_measurement.h_length / self._step + 1)
 
         self.data.measured_values = {'Voltage': None,
                                      'Current': None,
-                                     'Time': np.arange(0, 5.001, self._step),
+                                     'Time': np.arange(0, self.data.new_measurement.h_length, self._step),
                                      'RPM': None}
 
         self._setup_pi()
@@ -59,32 +60,20 @@ class RunProgram:
 
         GPIO.output(relay, mode)
 
-    def _destroy(self):
-        """Raspberry Pi output on LOW."""
-        GPIO.output(self.RELAY1, GPIO.LOW)
-        GPIO.output(self.RELAY2, GPIO.LOW)
-        GPIO.cleanup()
-
-    def _process_voltage(self, queue):
+    def _process_voltage_current(self, queue_v, queue_c):
         """"""
         y_voltage = np.zeros(self._amount_steps)
-        for step in range(self._amount_steps):
-            voltage = self.CHAN3.voltage * 3
-            y_voltage[step] = voltage
-            time.sleep(self._step)
-
-        queue.put(y_voltage)
-
-    def _process_current(self, queue):
-        """"""
         y_current = np.zeros(self._amount_steps)
+        print(self._amount_steps)
+        start_1 = time.time()
         for step in range(self._amount_steps):
-            current_voltage = self.CHAN2.voltage * 1000
-            current = (current_voltage - 2585) / 187.5
-            y_current[step] = current
-            time.sleep(self._step)
+            y_voltage[step] = self.CHAN3.voltage
+            y_current[step] = self.CHAN2.voltage
 
-        queue.put(y_current)
+        print(f'Time: {time.time() - start_1}')
+
+        queue_v.put(y_voltage)
+        queue_c.put(y_current)
 
     def _process_rpm(self, queue):
         """"""
@@ -107,32 +96,29 @@ class RunProgram:
         q_current = Queue()
         q_rpm = Queue()
 
-        p_voltage = Process(target=self._process_voltage, args=(q_voltage,))
-        p_current = Process(target=self._process_current, args=(q_current,))
+        p_voltage_current = Process(target=self._process_voltage_current, args=(q_voltage, q_current))
         p_rpm = Process(target=self._process_rpm, args=(q_rpm,))
 
-        p_voltage.start()
-        p_current.start()
+        p_voltage_current.start()
         p_rpm.start()
-        start = time.time()
+
+        time.sleep(0.05)
         self.run(self.RELAY1, True)
+
+        p_voltage_current.join()
+        p_rpm.kill()
 
         self.data.measured_values['Voltage'] = q_voltage.get()
         self.data.measured_values['Current'] = q_current.get()
         self.data.measured_values['RPM'] = q_rpm.get()
 
-        p_voltage.join()
-        p_current.join()
-        p_rpm.kill()
+        self.update_values()
 
         self.run(self.RELAY1, False)
-        print(f'Time: {time.time()-start}')
-
         time.sleep(1)
         self.run(self.RELAY2, True)
         time.sleep(1)
         self.run(self.RELAY2, False)
-        self._destroy()
 
     def old_run_program(self):
         """"""
@@ -142,17 +128,29 @@ class RunProgram:
 
         self.run(self.RELAY1, True)
 
+        start_1 = time.time()
         for current_step in range(self._amount_steps):
-            # Current:
-            current_voltage = (self.CHAN2.voltage) * 1000
-            current = (current_voltage - 2585) / 187.5
-            y_current[current_step] = current
+            y_current[current_step] = self.CHAN2.voltage
+            y_voltage[current_step] = self.CHAN3.voltage
 
-            # Voltage:
-            voltage = self.CHAN3.voltage * 3
-            y_voltage[current_step] = voltage
+        print(f'Time: {time.time() - start_1}')
 
-            time.sleep(self._step)
+        # for current_step in range(self._amount_steps):
+        #     # start = time.time()
+        #     # Current:
+        #     current_voltage = (self.CHAN2.voltage) * 1000
+        #     current = (current_voltage - 2585) / 187.5
+        #     y_current[current_step] = current
+        #
+        #     # Voltage:
+        #     voltage = self.CHAN3.voltage * 3
+        #     y_voltage[current_step] = voltage
+        #
+        #     # print(f'Time: {time.time() - start}')
+        #
+        #     # time.sleep(self._step)
+
+
 
         self.run(self.RELAY1, False)
 
@@ -163,6 +161,18 @@ class RunProgram:
         self.run(self.RELAY2, False)
         self._destroy()
 
+        # for current_step in range(self._amount_steps):
+
+
+
         self.data.measured_values['Voltage'] = y_voltage
         self.data.measured_values['Current'] = y_current
         self.data.measured_values['RPM'] = None
+
+    def update_values(self):
+        """"""
+        for index, value in enumerate(self.data.measured_values['Voltage']):
+            self.data.measured_values['Voltage'][index] = value * 3
+
+        for index, value in enumerate(self.data.measured_values['Current']):
+            self.data.measured_values['Current'][index] = (value * 1000 - 2585) / 187.5

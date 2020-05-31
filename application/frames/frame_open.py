@@ -6,7 +6,6 @@ from database.database import open_sqlite3
 
 from PyQt5 import QtWidgets, QtGui
 from collections import namedtuple
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -41,8 +40,8 @@ class FrameOpen(QtWidgets.QFrame):
         index = self.list_widget.currentRow()
         self.data.plot_measurement['m_header'] = self.data.old_measurement[index]
 
-        step = self.data.plot_measurement['m_header'].h_step
-        amount_steps = int(5 / step + 1)
+        step = 0.0221
+        amount_steps = int(self.data.plot_measurement['m_header'].h_length / step + 1)
 
         self.data.plot_measurement['Time'] = np.arange(0, 5.001, step)
         self.data.plot_measurement['Current'] = np.zeros(amount_steps)
@@ -78,14 +77,14 @@ class FrameOpen(QtWidgets.QFrame):
 
     def lw_load_data(self):
         """Loading the data into the list widget."""
-        m_header = namedtuple('m_header', ['h_id', 'u_id', 'h_date', 'h_weight', 'h_step'])
+        m_header = namedtuple('m_header', ['h_id', 'u_id', 'h_date', 'h_weight', 'h_length'])
 
         self.data.old_measurement.clear()
         self.list_widget.clear()
 
         # Database:
         with open_sqlite3() as cursor:
-            cursor.execute('SELECT h_id, u_id, h_date, h_weight, h_step FROM m_header')
+            cursor.execute('SELECT h_id, u_id, h_date, h_weight, h_length FROM m_header')
             data = cursor.fetchall()
 
         for row in data:

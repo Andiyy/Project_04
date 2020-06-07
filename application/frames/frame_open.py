@@ -42,8 +42,7 @@ class FrameOpen(QtWidgets.QFrame):
 
         step = 0.0221
         amount_steps = int(self.data.plot_measurement['m_header'].h_length / step + 1)
-
-        self.data.plot_measurement['Time'] = np.arange(0, 5.001, step)
+        self.data.plot_measurement['Time'] = np.arange(0, self.data.plot_measurement['m_header'].h_length, step)
         self.data.plot_measurement['Current'] = np.zeros(amount_steps)
         self.data.plot_measurement['Voltage'] = np.zeros(amount_steps)
 

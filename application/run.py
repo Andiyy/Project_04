@@ -5,17 +5,16 @@ import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 import RPi.GPIO as GPIO
-from multiprocessing import Process, Queue, Array
-from array import array
+from multiprocessing import Process, Queue
 
 
 class RunProgram:
     # AD:
     I2C = busio.I2C(board.SCL, board.SDA)
-    ADS_I2C = ADS.ADS1115(I2C)
+    ADS_I2C = ADS.ADS1115(I2C, gain=1)
     CHAN2 = AnalogIn(ADS_I2C, ADS.P2)  # current / Channel 2
     CHAN3 = AnalogIn(ADS_I2C, ADS.P3)  # voltage / Channel 3
-    GAIN = 1
+    # ADS_I2C.gain = 2/3
 
     # Relays:
     RELAY1 = 23
@@ -64,13 +63,20 @@ class RunProgram:
         """"""
         y_voltage = np.zeros(self._amount_steps)
         y_current = np.zeros(self._amount_steps)
-        print(self._amount_steps)
-        start_1 = time.time()
+
+        start = time.time()
+
         for step in range(self._amount_steps):
             y_voltage[step] = self.CHAN3.voltage
             y_current[step] = self.CHAN2.voltage
 
-        print(f'Time: {time.time() - start_1}')
+            print(f'Voltage: {self.CHAN3.value}')
+            print(f'Current: {self.CHAN2.value}')
+
+        print(f'Time: {time.time()-start}')
+
+        print(y_voltage)
+        print(y_current)
 
         queue_v.put(y_voltage)
         queue_c.put(y_current)
@@ -112,13 +118,17 @@ class RunProgram:
         self.data.measured_values['Current'] = q_current.get()
         self.data.measured_values['RPM'] = q_rpm.get()
 
-        self.update_values()
+        self._update_values()
 
         self.run(self.RELAY1, False)
         time.sleep(1)
         self.run(self.RELAY2, True)
         time.sleep(1)
         self.run(self.RELAY2, False)
+
+        print(len(self.data.measured_values['Time']))
+        print(len(self.data.measured_values['Current']))
+        print(len(self.data.measured_values['Voltage']))
 
     def old_run_program(self):
         """"""
@@ -169,10 +179,27 @@ class RunProgram:
         self.data.measured_values['Current'] = y_current
         self.data.measured_values['RPM'] = None
 
-    def update_values(self):
+    def _update_values(self):
         """"""
         for index, value in enumerate(self.data.measured_values['Voltage']):
-            self.data.measured_values['Voltage'][index] = value * 3
+            # self.data.measured_values['Voltage'][index] = value * 3 - 0.2
+            self.data.measured_values['Voltage'][index] = value * 0.125 * 3 * 10
 
         for index, value in enumerate(self.data.measured_values['Current']):
-            self.data.measured_values['Current'][index] = (value * 1000 - 2585) / 187.5
+            # self.data.measured_values['Current'][index] = (value * 1000 - 2585) / 187.5 + 0.2
+            self.data.measured_values['Current'][index] = value * 0.125 * 10
+
+
+def clear():
+    """Clearing the GPIOs and turning of the relays."""
+    try:
+        relay_1 = 23
+        relay_2 = 24
+
+        GPIO.output(relay_1, GPIO.LOW)
+        GPIO.output(relay_2, GPIO.LOW)
+
+        GPIO.cleanup()
+
+    except RuntimeError:
+        pass

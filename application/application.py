@@ -35,7 +35,7 @@ class Application(main_window.MainWindow):
         self.setStatusBar(self.status_bar)
 
         self.frame_sidebar = frame_sidebar.FrameSidebar()
-        self.frame_new = frame_new.FrameNew(data=self.data)
+        self.frame_new = frame_new.FrameNew(data=self.data, main_window=self)
         self.frame_open = frame_open.FrameOpen(data=self.data, main_window=self)
         self.frame_plot = frame_plot.FramePlot(data=self.data)
 
@@ -53,6 +53,9 @@ class Application(main_window.MainWindow):
         self.central_layout.removeWidget(self.frame_new)
         self.frame_new.hide()
 
+        self.central_layout.removeWidget(self.frame_plot)
+        self.frame_plot.hide()
+
         self.central_layout.addWidget(self.frame_open, 2, 2, 1, 2)
         self.frame_open.show()
         self.lbl_header.setText('Open Measurement')
@@ -67,7 +70,9 @@ class Application(main_window.MainWindow):
             return
         del dialog
 
+        self.central_layout.removeWidget(self.frame_plot)
         self.central_layout.removeWidget(self.frame_open)
+        self.frame_plot.hide()
         self.frame_open.hide()
 
         self.central_layout.addWidget(self.frame_new, 2, 2, 1, 2)
@@ -75,6 +80,3 @@ class Application(main_window.MainWindow):
         self.lbl_header.setText('New Measurement')
 
         self.frame_new.update_widgets()
-
-
-

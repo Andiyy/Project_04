@@ -4,6 +4,7 @@
 """Main file."""
 
 from application.application import Application
+from application.run import clear
 
 from PyQt5 import QtWidgets
 from contextlib import contextmanager
@@ -16,7 +17,13 @@ def error_handler():
     """Writes the errors into the error.txt file."""
     try:
         yield
+
+    except KeyboardInterrupt:
+        print('The Program was stopped!')
+
     finally:
+        clear()
+
         error = sys.exc_info()
 
         if error[0] is not None and error[0] != SystemExit:

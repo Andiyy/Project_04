@@ -75,9 +75,6 @@ class RunProgram:
 
         print(f'Time: {time.time()-start}')
 
-        print(y_voltage)
-        print(y_current)
-
         queue_v.put(y_voltage)
         queue_c.put(y_current)
 
@@ -126,10 +123,6 @@ class RunProgram:
         time.sleep(1)
         self.run(self.RELAY2, False)
 
-        print(len(self.data.measured_values['Time']))
-        print(len(self.data.measured_values['Current']))
-        print(len(self.data.measured_values['Voltage']))
-
     def old_run_program(self):
         """"""
         # TODO: Remove before final version
@@ -160,8 +153,6 @@ class RunProgram:
         #
         #     # time.sleep(self._step)
 
-
-
         self.run(self.RELAY1, False)
 
         time.sleep(1)
@@ -173,21 +164,20 @@ class RunProgram:
 
         # for current_step in range(self._amount_steps):
 
-
-
         self.data.measured_values['Voltage'] = y_voltage
         self.data.measured_values['Current'] = y_current
         self.data.measured_values['RPM'] = None
 
     def _update_values(self):
         """"""
+        bit_voltage = 430
+        bit_current = 20288
+
         for index, value in enumerate(self.data.measured_values['Voltage']):
-            # self.data.measured_values['Voltage'][index] = value * 3 - 0.2
-            self.data.measured_values['Voltage'][index] = value * 0.125 * 3 * 10
+            self.data.measured_values['Voltage'][index] = (value - bit_voltage) * 0.125 / 185
 
         for index, value in enumerate(self.data.measured_values['Current']):
-            # self.data.measured_values['Current'][index] = (value * 1000 - 2585) / 187.5 + 0.2
-            self.data.measured_values['Current'][index] = value * 0.125 * 10
+            self.data.measured_values['Current'][index] = (value - bit_current) * 0.125 / 185
 
 
 def clear():

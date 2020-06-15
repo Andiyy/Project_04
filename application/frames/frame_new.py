@@ -59,8 +59,10 @@ class FrameNew(QtWidgets.QFrame):
     def _connect_methods(self):
         """Connecting the widgets to the methods."""
         self.pb_start.clicked.connect(self._button_start)
-        self.pb_up.clicked.connect(self._button_up)
-        self.pb_down.clicked.connect(self._button_down)
+        self.pb_up.pressed.connect(self._button_up_pressed)
+        self.pb_up.released.connect(self._button_up_released)
+        self.pb_down.pressed.connect(self._button_down_pressed)
+        self.pb_down.released.connect(self._button_down_released)
         self.pb_show_diagram.clicked.connect(self._button_show_diagram)
 
     def _button_start(self):
@@ -70,16 +72,20 @@ class FrameNew(QtWidgets.QFrame):
         self.pb_start.setDisabled(True)
         self.pb_show_diagram.setEnabled(True)
 
-    def _button_up(self):
+    def _button_up_pressed(self):
         """Moving up."""
         self.run.run(23, True)
-        time.sleep(0.5)
+
+    def _button_up_released(self):
+        """Moving up."""
         self.run.run(23, False)
 
-    def _button_down(self):
+    def _button_down_pressed(self):
         """Moving down."""
         self.run.run(24, True)
-        time.sleep(0.5)
+
+    def _button_down_released(self):
+        """Moving down."""
         self.run.run(24, False)
 
     def _button_show_diagram(self):

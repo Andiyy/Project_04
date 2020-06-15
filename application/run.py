@@ -12,6 +12,7 @@ class RunProgram:
     # AD:
     I2C = busio.I2C(board.SCL, board.SDA)
     ADS_I2C = ADS.ADS1115(I2C, gain=1)
+    CHAN1 = AnalogIn(ADS_I2C, ADS.P1)  # rpm     / Channel 1
     CHAN2 = AnalogIn(ADS_I2C, ADS.P2)  # current / Channel 2
     CHAN3 = AnalogIn(ADS_I2C, ADS.P3)  # voltage / Channel 3
 
@@ -20,7 +21,6 @@ class RunProgram:
     RELAY2 = 24
 
     """"""
-
     def __init__(self, data):
         self.data = data
 
@@ -72,16 +72,16 @@ class RunProgram:
 
     def _process_rpm(self, queue):
         """"""
-        # GPIO.setup(HallPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Set BtnPin's mode is input, and pull up to high level(3.3V)
-        # GPIO.add_event_detect(HallPin, GPIO.FALLING, callback=detect, bouncetime=25)
-        # if GPIO.event_detected(17):
-        #     self._rpm += 1
-        #     print(self._rpm)
+        y_rpm = np.zeros(self._amount_steps)
 
-        a = 0
-        a += 1
-        queue.put(a)
-        time.sleep(10)
+        start = time.time()
+
+        for step in range(self._amount_steps):
+            y_rpm[step] = self.CHAN1.value
+
+        print(f'Time RPM: {time.time() - start}')
+
+        queue.put(y_rpm)
 
     def run_program(self):
         """Running the Program."""
@@ -99,7 +99,7 @@ class RunProgram:
         self.run(self.RELAY1, True)
 
         p_voltage_current.join()
-        p_rpm.kill()
+        p_rpm.join()
 
         self.data.measured_values['Voltage'] = q_voltage.get()
         self.data.measured_values['Current'] = q_current.get()
@@ -110,12 +110,31 @@ class RunProgram:
         self.run(self.RELAY1, False)
 
     def _update_values(self):
-        """"""
+        """Updating the values."""
+        bit_current = 20288
+
         for index, value in enumerate(self.data.measured_values['Voltage']):
-            self.data.measured_values['Voltage'][index] = value
+            self.data.measured_values['Voltage'][index] = value * 0.0006226
 
         for index, value in enumerate(self.data.measured_values['Current']):
-            self.data.measured_values['Current'][index] = value
+            self.data.measured_values['Current'][index] = (value - bit_current) * 0.125 / 185
+
+        zähler = 0
+        test = []
+        try:
+            for index, element in enumerate(self.data.measured_values['RPM']):
+                if element >= 24_000:
+                    test.append(True)
+                else:
+                    test.append(False)
+
+            for index, element in enumerate(test):
+                if element is True and test[index+1] is False:
+                    zähler += 1
+        except IndexError:
+            print(f'Zähler: {zähler}')
+
+        print(f'Zähler: {zähler}')
 
 
 def clear():

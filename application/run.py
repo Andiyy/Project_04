@@ -14,7 +14,6 @@ class RunProgram:
     ADS_I2C = ADS.ADS1115(I2C, gain=1)
     CHAN2 = AnalogIn(ADS_I2C, ADS.P2)  # current / Channel 2
     CHAN3 = AnalogIn(ADS_I2C, ADS.P3)  # voltage / Channel 3
-    # ADS_I2C.gain = 2/3
 
     # Relays:
     RELAY1 = 23
@@ -64,16 +63,9 @@ class RunProgram:
         y_voltage = np.zeros(self._amount_steps)
         y_current = np.zeros(self._amount_steps)
 
-        start = time.time()
-
         for step in range(self._amount_steps):
-            y_voltage[step] = self.CHAN3.voltage
-            y_current[step] = self.CHAN2.voltage
-
-            print(f'Voltage: {self.CHAN3.value}')
-            print(f'Current: {self.CHAN2.value}')
-
-        print(f'Time: {time.time()-start}')
+            y_voltage[step] = self.CHAN3.value
+            y_current[step] = self.CHAN2.value
 
         queue_v.put(y_voltage)
         queue_c.put(y_current)
@@ -86,12 +78,10 @@ class RunProgram:
         #     self._rpm += 1
         #     print(self._rpm)
 
-        print('RPM, Start')
         a = 0
         a += 1
         queue.put(a)
         time.sleep(10)
-        print('RPM, Finish')
 
     def run_program(self):
         """Running the Program."""
@@ -118,66 +108,14 @@ class RunProgram:
         self._update_values()
 
         self.run(self.RELAY1, False)
-        time.sleep(1)
-        self.run(self.RELAY2, True)
-        time.sleep(1)
-        self.run(self.RELAY2, False)
-
-    def old_run_program(self):
-        """"""
-        # TODO: Remove before final version
-        y_current = np.zeros(self._amount_steps)
-        y_voltage = np.zeros(self._amount_steps)
-
-        self.run(self.RELAY1, True)
-
-        start_1 = time.time()
-        for current_step in range(self._amount_steps):
-            y_current[current_step] = self.CHAN2.voltage
-            y_voltage[current_step] = self.CHAN3.voltage
-
-        print(f'Time: {time.time() - start_1}')
-
-        # for current_step in range(self._amount_steps):
-        #     # start = time.time()
-        #     # Current:
-        #     current_voltage = (self.CHAN2.voltage) * 1000
-        #     current = (current_voltage - 2585) / 187.5
-        #     y_current[current_step] = current
-        #
-        #     # Voltage:
-        #     voltage = self.CHAN3.voltage * 3
-        #     y_voltage[current_step] = voltage
-        #
-        #     # print(f'Time: {time.time() - start}')
-        #
-        #     # time.sleep(self._step)
-
-        self.run(self.RELAY1, False)
-
-        time.sleep(1)
-
-        self.run(self.RELAY2, True)
-        time.sleep(4.4)
-        self.run(self.RELAY2, False)
-        self._destroy()
-
-        # for current_step in range(self._amount_steps):
-
-        self.data.measured_values['Voltage'] = y_voltage
-        self.data.measured_values['Current'] = y_current
-        self.data.measured_values['RPM'] = None
 
     def _update_values(self):
         """"""
-        bit_voltage = 430
-        bit_current = 20288
-
         for index, value in enumerate(self.data.measured_values['Voltage']):
-            self.data.measured_values['Voltage'][index] = (value - bit_voltage) * 0.125 / 185
+            self.data.measured_values['Voltage'][index] = value
 
         for index, value in enumerate(self.data.measured_values['Current']):
-            self.data.measured_values['Current'][index] = (value - bit_current) * 0.125 / 185
+            self.data.measured_values['Current'][index] = value
 
 
 def clear():

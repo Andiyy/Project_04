@@ -4,6 +4,8 @@
 """Creation and implementation of the menu."""
 
 
+from application.dialogs import pi_dialog
+
 from PyQt5 import QtWidgets, QtGui
 import os
 import sys
@@ -133,8 +135,18 @@ class Menu(QtWidgets.QMenuBar):
         message.information(self, 'Information', f'Connected to: {self.data.raspberry_pi.ip}')
 
     def _triggered_menu_pi_new(self):
-        """"""
-        # TODO: Opening a new dialog
+        """Testing the connection to the pi.
+        First the dialog is opened, then the user is notified.
+        """
+        message = QtWidgets.QMessageBox()
+        dialog_pi = pi_dialog.PiConnection(self)
+        dialog_pi.set_data(data=self.data)
+        if dialog_pi.exec_() != QtWidgets.QDialog.Accepted:
+            message.warning(self, 'Warning', 'Connection Failed!')
+        else:
+            message.information(self, 'Information', 'Connection Successful!')
+
+        del dialog_pi
 
     def _triggered_menu_nukleo(self):
         """"""

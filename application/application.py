@@ -3,7 +3,7 @@
 """The main application."""
 
 from application import main_window, menu, status_bar, data
-from application.frames import frame_sidebar, frame_new, frame_open, frame_plot
+from application.frames import frame_sidebar, frame_new, frame_open
 from application.dialogs import user_dialog, new_measurement_dialog
 
 
@@ -27,17 +27,17 @@ class Application(main_window.MainWindow):
         del dialog_user
 
         # Menu:
-        self.menu_bar = menu.Menu()
+        self.menu_bar = menu.Menu(data=self.data, main_window=self)
         self.setMenuBar(self.menu_bar)
 
         # Statusbar:
         self.status_bar = status_bar.Statusbar(data=self.data)
         self.setStatusBar(self.status_bar)
 
+        # Frames:
         self.frame_sidebar = frame_sidebar.FrameSidebar()
         self.frame_new = frame_new.FrameNew(data=self.data, main_window=self)
         self.frame_open = frame_open.FrameOpen(data=self.data, main_window=self)
-        self.frame_plot = frame_plot.FramePlot(data=self.data)
 
         self.central_layout.addWidget(self.frame_sidebar, 2, 0)  # Adding the frame to the main window
 
@@ -53,9 +53,6 @@ class Application(main_window.MainWindow):
         self.central_layout.removeWidget(self.frame_new)
         self.frame_new.hide()
 
-        self.central_layout.removeWidget(self.frame_plot)
-        self.frame_plot.hide()
-
         self.central_layout.addWidget(self.frame_open, 2, 2, 1, 2)
         self.frame_open.show()
         self.lbl_header.setText('Open Measurement')
@@ -64,15 +61,15 @@ class Application(main_window.MainWindow):
 
     def _button_h_new(self):
         """Updating the main window and showing the new frame."""
+        self.frame_open.lw_load_data()
+
         dialog = new_measurement_dialog.NewMeasurement()
         dialog.set_data(data=self.data)
         if dialog.exec_() != QtWidgets.QDialog.Accepted:
             return
         del dialog
 
-        self.central_layout.removeWidget(self.frame_plot)
         self.central_layout.removeWidget(self.frame_open)
-        self.frame_plot.hide()
         self.frame_open.hide()
 
         self.central_layout.addWidget(self.frame_new, 2, 2, 1, 2)

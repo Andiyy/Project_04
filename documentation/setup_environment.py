@@ -16,3 +16,5 @@ if __name__ == '__main__':
     install_module('PyQt5')
     install_module('numpy')
     install_module('matplotlib')
+    install_module('gpioze')
+    install_module('paramiko')

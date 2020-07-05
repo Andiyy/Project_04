@@ -1,3 +1,0 @@
-2020-05-20 13:06:26.293779, (<class 'AttributeError'>, AttributeError("'FramePlot' object has no attribute 'button'"), <traceback object at 0x053DB628>)
-2020-05-20 13:16:09.483336, (<class 'ValueError'>, ValueError('x, y, and format string must not be None'), <traceback object at 0x0A102B88>)
-2020-05-26 21:12:17.708199, (<class 'TypeError'>, TypeError('arguments did not match any overloaded call:\n  addWidget(self, QWidget): not enough arguments\n  addWidget(self, QWidget, int, int, alignment: Union[Qt.Alignment, Qt.AlignmentFlag] = Qt.Alignment()): not enough arguments\n  addWidget(self, QWidget, int, int, int, int, alignment: Union[Qt.Alignment, Qt.AlignmentFlag] = Qt.Alignment()): not enough arguments'), <traceback object at 0x044AEEA8>)

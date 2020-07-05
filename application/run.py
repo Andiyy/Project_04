@@ -1,152 +1,126 @@
-import time
+# -*- coding: utf-8 -*-
+
+""""""
+
+
+from gpiozero import LED
+from gpiozero.pins.pigpio import PiGPIOFactory
 import numpy as np
-import board
-import busio
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
-import RPi.GPIO as GPIO
-from multiprocessing import Process, Queue
+import serial
+import io
+from threading import Thread
+import time
 
 
 class RunProgram:
-    # AD:
-    I2C = busio.I2C(board.SCL, board.SDA)
-    ADS_I2C = ADS.ADS1115(I2C, gain=1)
-    CHAN1 = AnalogIn(ADS_I2C, ADS.P1)  # rpm     / Channel 1
-    CHAN2 = AnalogIn(ADS_I2C, ADS.P2)  # current / Channel 2
-    CHAN3 = AnalogIn(ADS_I2C, ADS.P3)  # voltage / Channel 3
-
-    # Relays:
-    RELAY1 = 23
-    RELAY2 = 24
-
     """"""
+
     def __init__(self, data):
         self.data = data
 
-        # Time/Steps:
-        self._step = 0.0221
-        self._amount_steps = int(self.data.new_measurement.h_length / self._step + 1)
+        self.factory = PiGPIOFactory(host='192.168.2.135')
+        self.relay_up = LED(23, pin_factory=self.factory)
+        self.relay_down = LED(24, pin_factory=self.factory)
 
-        self.data.measured_values = {'Voltage': None,
-                                     'Current': None,
-                                     'Time': np.arange(0, self.data.new_measurement.h_length, self._step),
-                                     'RPM': None}
+        self._steps = self.data.new_measurement.h_length * 100 + 100
 
-        self._setup_pi()
+        # Raw data:
+        self.raw_current = np.zeros(self._steps)
+        self.raw_voltage = np.zeros(self._steps)
+        self.raw_rpm = np.zeros(self._steps)
+        self.bit_rpm = np.zeros(self._steps)
 
-    def _setup_pi(self):
-        """Setup for the GPIOs."""
-        GPIO.setup(self.RELAY1, GPIO.OUT)
-        GPIO.setup(self.RELAY2, GPIO.OUT)
-        GPIO.output(self.RELAY1, GPIO.LOW)
-        GPIO.output(self.RELAY2, GPIO.LOW)
+        # Final data:
+        self.current = np.zeros(self._steps)
+        self.voltage = np.zeros(self._steps)
+        self.rpm = []
+        self.frequency = np.arange(0, self._steps, 50)
+        self.time = np.arange(0, self.data.new_measurement.h_length, 0.01)
+        self.time_rpm = [i/2 for i in range(0, self.data.new_measurement.h_length * 2, 1)]
 
-    @staticmethod
-    def run(relay: ('RELAY1', 'RELAY2'), mode: bool = False):
-        """Turning the relays on and off.
-
-        :param relay    Relay1 or Relay2
-        :param mode     On/Off
-        """
-        if mode:
-            mode = GPIO.HIGH
-        elif not mode:
-            mode = GPIO.LOW
-        else:
-            raise ValueError('You have to enter a bool!')
-
-        GPIO.output(relay, mode)
-
-    def _process_voltage_current(self, queue_v, queue_c):
-        """"""
-        y_voltage = np.zeros(self._amount_steps)
-        y_current = np.zeros(self._amount_steps)
-
-        for step in range(self._amount_steps):
-            y_voltage[step] = self.CHAN3.value
-            y_current[step] = self.CHAN2.value
-
-        queue_v.put(y_voltage)
-        queue_c.put(y_current)
-
-    def _process_rpm(self, queue):
-        """"""
-        y_rpm = np.zeros(self._amount_steps)
-
-        start = time.time()
-
-        for step in range(self._amount_steps):
-            y_rpm[step] = self.CHAN1.value
-
-        print(f'Time RPM: {time.time() - start}')
-
-        queue.put(y_rpm)
+        self._output_mode = self._nukleo_output_mode(analog_input=3, frequency=3, low_pass_filter=True)
 
     def run_program(self):
         """Running the Program."""
-        q_voltage = Queue()
-        q_current = Queue()
-        q_rpm = Queue()
+        usb = serial.Serial('COM3', 115200, timeout=2)
+        nukleo = io.TextIOWrapper(io.BufferedRWPair(usb, usb))
+        thread_relays = Thread(target=self._start, args=(self.data.new_measurement.h_length,))
 
-        p_voltage_current = Process(target=self._process_voltage_current, args=(q_voltage, q_current))
-        p_rpm = Process(target=self._process_rpm, args=(q_rpm,))
+        nukleo.write(str(self._output_mode) + "\n")
+        nukleo.flush()
+        thread_relays.start()
 
-        p_voltage_current.start()
-        p_rpm.start()
+        for i in range(self._steps):
+            data = nukleo.readline()
+            split_data = data.split(' ')
 
-        time.sleep(0.05)
-        self.run(self.RELAY1, True)
+            self.raw_current[i] = int(split_data[0])
+            self.raw_voltage[i] = int(split_data[1])
+            self.raw_rpm[i] = int(split_data[2])
 
-        p_voltage_current.join()
-        p_rpm.join()
-
-        self.data.measured_values['Voltage'] = q_voltage.get()
-        self.data.measured_values['Current'] = q_current.get()
-        self.data.measured_values['RPM'] = q_rpm.get()
+        nukleo.write("\n")
+        nukleo.flush()
+        usb.close()
 
         self._update_values()
 
-        self.run(self.RELAY1, False)
+    def _start(self, duration: int):
+        """Starting the motor."""
+        time.sleep(0.5)
+        self.relay_up.on()
+        time.sleep(duration)
+        self.relay_up.off()
 
     def _update_values(self):
         """Updating the values."""
-        bit_current = 20288
+        for index, element in enumerate(self.raw_current):
+            self.current[index] = (element - 2904.99) * 0.000805664 / 0.185  # Offset: 2904.9977153301347
 
-        for index, value in enumerate(self.data.measured_values['Voltage']):
-            self.data.measured_values['Voltage'][index] = value * 0.0006226
+        for index, element in enumerate(self.raw_voltage):
+            self.voltage[index] = element * 0.000805664 / 0.195
 
-        for index, value in enumerate(self.data.measured_values['Current']):
-            self.data.measured_values['Current'][index] = (value - bit_current) * 0.125 / 185
+        for index, element in enumerate(self.raw_rpm):
+            value = element * 0.000805664
 
-        zähler = 0
-        test = []
+            if value > 1.65:
+                self.bit_rpm[index] = 1
+
+        counter = 0
+
         try:
-            for index, element in enumerate(self.data.measured_values['RPM']):
-                if element >= 24_000:
-                    test.append(True)
-                else:
-                    test.append(False)
+            for index, element in enumerate(self.bit_rpm):
+                if element == 1 and self.bit_rpm[index + 1] == 0:
+                    counter += 1
 
-            for index, element in enumerate(test):
-                if element is True and test[index+1] is False:
-                    zähler += 1
+                if index in self.frequency:
+                    current_rpm = counter/6
+                    self.rpm.append(current_rpm)
+                    counter = 0
+
         except IndexError:
-            print(f'Zähler: {zähler}')
+            pass
 
-        print(f'Zähler: {zähler}')
+        self.data.measured_values['Current'] = self.current
+        self.data.measured_values['Voltage'] = self.voltage
+        self.data.measured_values['RPM'] = self.rpm
 
+    @staticmethod
+    def _nukleo_output_mode(analog_input: (1, 2, 3), frequency: (1, 2, 3, 4), low_pass_filter=True) -> int:
+        """Setting up the nukleo output mode.
 
-def clear():
-    """Clearing the GPIOs and turning of the relays."""
-    try:
-        relay_1 = 23
-        relay_2 = 24
+        :param analog_input:    1 -> A0
+                                2 -> A0, A1
+                                3 -> A0, A1, A2
+        :param frequency:       1 -> 1Hz
+                                2 -> 10Hz
+                                3 -> 100Hz
+                                4 -> 1000Hz
+        :param low_pass_filter: True  -> On
+                                False -> Off
 
-        GPIO.output(relay_1, GPIO.LOW)
-        GPIO.output(relay_2, GPIO.LOW)
-
-        GPIO.cleanup()
-
-    except RuntimeError:
-        pass
+        :return Integer for the output mode.
+        """
+        if low_pass_filter:
+            return 10 * analog_input + frequency
+        elif not low_pass_filter:
+            return - 10 * analog_input + frequency

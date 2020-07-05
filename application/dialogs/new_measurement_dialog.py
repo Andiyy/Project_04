@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Widgets for the main window."""
+"""Dialog to create a new measurement."""
 
 from database.database import open_sqlite3
 
@@ -11,7 +10,7 @@ import datetime
 
 
 class NewMeasurement(QtWidgets.QDialog):
-    """The visual layout of the GUI."""
+    """Dialog - new measurement."""
     def __init__(self, *args, **kwargs):
         super(NewMeasurement, self).__init__(*args, **kwargs)
 
@@ -47,7 +46,11 @@ class NewMeasurement(QtWidgets.QDialog):
         self.data = data
 
     def _button_create(self):
-        """Button Start."""
+        """Button create.
+        Getting the user input from the widgets.
+        Creating the new measurement in the database.
+        Closing the Dialog
+        """
         weight = self.sb_weight.value()
         length = self.sb_length.value()
 

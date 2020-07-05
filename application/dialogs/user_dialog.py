@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-"""Widgets for the main window."""
+"""Dialog to chose witch user is testing."""
+
 
 from database.database import open_sqlite3
 
@@ -9,7 +10,7 @@ import collections
 
 
 class UserDialog(QtWidgets.QDialog):
-    """The visual layout of the GUI."""
+    """Dialog - User."""
     def __init__(self, *args, **kwargs):
         super(UserDialog, self).__init__(*args, **kwargs)
 
@@ -47,7 +48,10 @@ class UserDialog(QtWidgets.QDialog):
         self.data = data
 
     def _add_items(self):
-        """Adding items to the combo box."""
+        """Adding items to the combo box.
+        Creating a namedtuple then getting the data from the database.
+        Updating the combobox.
+        """
         n_tuple = collections.namedtuple('user_data', ['u_id', 'u_name', 'u_email'])
 
         # Database:
@@ -60,7 +64,9 @@ class UserDialog(QtWidgets.QDialog):
             self.user_data.append(n_tuple(*row))
 
     def _button_start(self):
-        """Starting the program."""
+        """Starting the program.
+        Getting the selected person. Closing the dialog and starting the application.
+        """
         index = self.cb_user.currentIndex()
         self.data.user = self.user_data[index]
 

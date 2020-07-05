@@ -7,7 +7,7 @@ from application.run import RunProgram
 from database.database import open_sqlite3
 
 from PyQt5 import QtWidgets, QtGui
-import time
+import os
 
 
 class FrameNew(QtWidgets.QFrame):
@@ -74,22 +74,23 @@ class FrameNew(QtWidgets.QFrame):
 
     def _button_up_pressed(self):
         """Moving up."""
-        self.run.run(23, True)
+        self.run.relay_up.on()
 
     def _button_up_released(self):
         """Moving up."""
-        self.run.run(23, False)
+        self.run.relay_up.off()
 
     def _button_down_pressed(self):
         """Moving down."""
-        self.run.run(24, True)
+        self.run.relay_down.on()
 
     def _button_down_released(self):
         """Moving down."""
-        self.run.run(24, False)
+        self.run.relay_down.off()
 
     def _button_show_diagram(self):
         """Showing the Diagram."""
+        # TODO: Opening the diagram!
 
     def _write_data(self):
         """'Writing the data into the database."""
@@ -103,9 +104,7 @@ class FrameNew(QtWidgets.QFrame):
                 cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
                                (self.data.new_measurement.h_id, 2, value))
 
-        # with open_sqlite3() as cursor:
-        # cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
-        #                (self.data.new_measurement.h_id, 3, self.data.measured_values['Current']))
-
-
-
+        with open_sqlite3() as cursor:
+            for value in self.data.measured_values['RPM']:
+                cursor.execute('INSERT INTO m_data VALUES (?, ?, ?);',
+                               (self.data.new_measurement.h_id, 3, value))

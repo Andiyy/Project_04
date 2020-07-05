@@ -8,4 +8,8 @@ The project of the group 1-Memmingen of the 4th semester of the study course Sys
 
 ## Getting started
 
-To install all required modules for the program you have to run the program ```./documentation/setup_environment.py```. 
+To install all required modules for the program you have to run the program ```./documentation/setup_environment.py```.
+
+---
+
+ 

@@ -64,30 +64,30 @@ class Menu(QtWidgets.QMenuBar):
         menu_pi.addAction(self.menu_pi_quick_connect)
         menu_pi.addAction(self.menu_pi_new_connection)
 
-        # Nukleo:
-        menu_nukleo = QtWidgets.QMenu(self)
-        menu_nukleo.setTitle('Nukleo')
-        menu_nukleo.setFont(font)
+        # Nucleo:
+        menu_nucleo = QtWidgets.QMenu(self)
+        menu_nucleo.setTitle('Nucleo')
+        menu_nucleo.setFont(font)
 
-        self.nukleo_com_1 = QtWidgets.QAction('COM 1', self)
-        self.nukleo_com_2 = QtWidgets.QAction('COM 2', self)
-        self.nukleo_com_3 = QtWidgets.QAction('COM 3', self)
-        self.nukleo_com_4 = QtWidgets.QAction('COM 4', self)
-        self.nukleo_com_5 = QtWidgets.QAction('COM 5', self)
-        self.nukleo_com_6 = QtWidgets.QAction('COM 6', self)
+        self.nucleo_com_1 = QtWidgets.QAction('COM 1', self)
+        self.nucleo_com_2 = QtWidgets.QAction('COM 2', self)
+        self.nucleo_com_3 = QtWidgets.QAction('COM 3', self)
+        self.nucleo_com_4 = QtWidgets.QAction('COM 4', self)
+        self.nucleo_com_5 = QtWidgets.QAction('COM 5', self)
+        self.nucleo_com_6 = QtWidgets.QAction('COM 6', self)
 
-        menu_nukleo.addAction(self.nukleo_com_1)
-        menu_nukleo.addAction(self.nukleo_com_2)
-        menu_nukleo.addAction(self.nukleo_com_3)
-        menu_nukleo.addAction(self.nukleo_com_4)
-        menu_nukleo.addAction(self.nukleo_com_5)
-        menu_nukleo.addAction(self.nukleo_com_6)
+        menu_nucleo.addAction(self.nucleo_com_1)
+        menu_nucleo.addAction(self.nucleo_com_2)
+        menu_nucleo.addAction(self.nucleo_com_3)
+        menu_nucleo.addAction(self.nucleo_com_4)
+        menu_nucleo.addAction(self.nucleo_com_5)
+        menu_nucleo.addAction(self.nucleo_com_6)
 
         # Adding the menus to the menubar:
         self.addMenu(menu_file)
         self.addMenu(menu_tutorial)
         self.addMenu(menu_pi)
-        self.addMenu(menu_nukleo)
+        self.addMenu(menu_nucleo)
 
     def _connect_menu(self):
         """Connecting the menu widgets to the methods."""
@@ -100,12 +100,12 @@ class Menu(QtWidgets.QMenuBar):
         self.menu_pi_quick_connect.triggered.connect(self._triggered_menu_pi_quick)
         self.menu_pi_new_connection.triggered.connect(self._triggered_menu_pi_new)
 
-        self.nukleo_com_1.triggered.connect(self._triggered_menu_nukleo)
-        self.nukleo_com_2.triggered.connect(self._triggered_menu_nukleo)
-        self.nukleo_com_3.triggered.connect(self._triggered_menu_nukleo)
-        self.nukleo_com_4.triggered.connect(self._triggered_menu_nukleo)
-        self.nukleo_com_5.triggered.connect(self._triggered_menu_nukleo)
-        self.nukleo_com_6.triggered.connect(self._triggered_menu_nukleo)
+        self.nucleo_com_1.triggered.connect(self._triggered_menu_nucleo)
+        self.nucleo_com_2.triggered.connect(self._triggered_menu_nucleo)
+        self.nucleo_com_3.triggered.connect(self._triggered_menu_nucleo)
+        self.nucleo_com_4.triggered.connect(self._triggered_menu_nucleo)
+        self.nucleo_com_5.triggered.connect(self._triggered_menu_nucleo)
+        self.nucleo_com_6.triggered.connect(self._triggered_menu_nucleo)
 
     @staticmethod
     def _triggered_menu_close():
@@ -148,31 +148,31 @@ class Menu(QtWidgets.QMenuBar):
 
         del dialog_pi
 
-    def _triggered_menu_nukleo(self):
+    def _triggered_menu_nucleo(self):
         """"""
         sender = self.sender()
         port = 'COM'
-        if sender == self.nukleo_com_1:
+        if sender == self.nucleo_com_1:
             port += '1'
-        elif sender == self.nukleo_com_2:
+        elif sender == self.nucleo_com_2:
             port += '2'
-        elif sender == self.nukleo_com_3:
+        elif sender == self.nucleo_com_3:
             port += '3'
-        elif sender == self.nukleo_com_4:
+        elif sender == self.nucleo_com_4:
             port += '4'
-        elif sender == self.nukleo_com_5:
+        elif sender == self.nucleo_com_5:
             port += '65'
-        elif sender == self.nukleo_com_6:
+        elif sender == self.nucleo_com_6:
             port += '6'
         else:
             raise ValueError('A new method is referring to this method.')
 
-        self.data.nukleo = port
+        self.data.nucleo = port
 
-        self._test_nukleo()
+        self._test_nucleo()
 
-    def _test_nukleo(self):
-        """Testing the connection to the Nukleo."""
+    def _test_nucleo(self):
+        """Testing the connection to the Nucleo."""
         message = QtWidgets.QMessageBox()
         # TODO test the connection
         try:
@@ -182,7 +182,7 @@ class Menu(QtWidgets.QMenuBar):
             return
 
         message.information(self, 'Information', 'Connection Successful!')
-        self.main_window.status_bar.lbl_nukleo.setText(f'Nukleo: {self.data.nukleo}')
+        self.main_window.status_bar.lbl_nucleo.setText(f'Nucleo: {self.data.nukleo}')
 
     def _connect_pi(self):
         """Connect to Pi and setup.

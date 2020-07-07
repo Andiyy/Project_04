@@ -23,5 +23,5 @@ class Statusbar(QtWidgets.QStatusBar):
         self.lbl_pi = QtWidgets.QLabel('  Pi-IP: Not Connected  ')
         self.addPermanentWidget(self.lbl_pi)
 
-        self.lbl_nukleo = QtWidgets.QLabel('  Nukleo: Not Connected  ')
-        self.addPermanentWidget(self.lbl_nukleo)
+        self.lbl_nucleo = QtWidgets.QLabel('  Nucleo: Not Connected  ')
+        self.addPermanentWidget(self.lbl_nucleo)

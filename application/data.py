@@ -26,4 +26,4 @@ class Data:
                                  }
 
         self.raspberry_pi = None
-        self.nukleo = None
+        self.nucleo = None

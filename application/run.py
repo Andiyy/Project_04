@@ -38,28 +38,28 @@ class RunProgram:
         self.time = np.arange(0, self.data.new_measurement.h_length, 0.01)
         self.time_rpm = [i/2 for i in range(0, self.data.new_measurement.h_length * 2, 1)]
 
-        self._output_mode = self._nukleo_output_mode(analog_input=3, frequency=3, low_pass_filter=True)
+        self._output_mode = self._nucleo_output_mode(analog_input=3, frequency=3, low_pass_filter=True)
 
     def run_program(self):
         """Running the Program."""
         usb = serial.Serial('COM3', 115200, timeout=2)
-        nukleo = io.TextIOWrapper(io.BufferedRWPair(usb, usb))
+        nucleo = io.TextIOWrapper(io.BufferedRWPair(usb, usb))
         thread_relays = Thread(target=self._start, args=(self.data.new_measurement.h_length,))
 
-        nukleo.write(str(self._output_mode) + "\n")
-        nukleo.flush()
+        nucleo.write(str(self._output_mode) + "\n")
+        nucleo.flush()
         thread_relays.start()
 
         for i in range(self._steps):
-            data = nukleo.readline()
+            data = nucleo.readline()
             split_data = data.split(' ')
 
             self.raw_current[i] = int(split_data[0])
             self.raw_voltage[i] = int(split_data[1])
             self.raw_rpm[i] = int(split_data[2])
 
-        nukleo.write("\n")
-        nukleo.flush()
+        nucleo.write("\n")
+        nucleo.flush()
         usb.close()
 
         self._update_values()
@@ -105,8 +105,8 @@ class RunProgram:
         self.data.measured_values['RPM'] = self.rpm
 
     @staticmethod
-    def _nukleo_output_mode(analog_input: (1, 2, 3), frequency: (1, 2, 3, 4), low_pass_filter=True) -> int:
-        """Setting up the nukleo output mode.
+    def _nucleo_output_mode(analog_input: (1, 2, 3), frequency: (1, 2, 3, 4), low_pass_filter=True) -> int:
+        """Setting up the nucleo output mode.
 
         :param analog_input:    1 -> A0
                                 2 -> A0, A1

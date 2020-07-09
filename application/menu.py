@@ -119,6 +119,7 @@ class Menu(QtWidgets.QMenuBar):
 
     def _triggered_menu_pi_quick(self):
         """"""
+        message = QtWidgets.QMessageBox()
         raspberry_pi = namedtuple('Pi', ['ip', 'port', 'name', 'password'])
 
         with open(fr'{os.curdir}\src\files\pi.txt') as file:
@@ -127,12 +128,12 @@ class Menu(QtWidgets.QMenuBar):
 
         self.data.raspberry_pi = raspberry_pi(*data)
 
-        self._connect_pi()
+        if self._connect_pi():
+            self.main_window.status_bar.lbl_pi.setText(f'Pi: {self.data.raspberry_pi.ip}')
+            message.information(self, 'Information', f'Connected to: {self.data.raspberry_pi.ip}')
 
-        self.main_window.status_bar.lbl_pi.setText(f'Pi: {self.data.raspberry_pi.ip}')
-
-        message = QtWidgets.QMessageBox()
-        message.information(self, 'Information', f'Connected to: {self.data.raspberry_pi.ip}')
+        else:
+            message.warning(self, 'Warning', 'No connection to the Raspberry Pi!')
 
     def _triggered_menu_pi_new(self):
         """Testing the connection to the pi.
@@ -161,7 +162,7 @@ class Menu(QtWidgets.QMenuBar):
         elif sender == self.nucleo_com_4:
             port += '4'
         elif sender == self.nucleo_com_5:
-            port += '65'
+            port += '5'
         elif sender == self.nucleo_com_6:
             port += '6'
         else:
@@ -184,12 +185,11 @@ class Menu(QtWidgets.QMenuBar):
         message.information(self, 'Information', 'Connection Successful!')
         self.main_window.status_bar.lbl_nucleo.setText(f'Nucleo: {self.data.nukleo}')
 
-    def _connect_pi(self):
+    def _connect_pi(self) -> bool:
         """Connect to Pi and setup.
         The connection to the Raspberry Pi is tested. Also the pigpiod is set to the Pi (Enables the GPIO control over
         the SSH connection. If the connection fails, a message box is displayed.
         """
-        # TODO Test what happens if the pi is off or the connection is false.
         try:
             cmd = 'sudo pigpiod'
 
@@ -198,7 +198,7 @@ class Menu(QtWidgets.QMenuBar):
             ssh.connect(self.data.raspberry_pi.ip, self.data.raspberry_pi.port,
                         self.data.raspberry_pi.name, self.data.raspberry_pi.password)
             ssh.exec_command(cmd)
+            return True
 
         except TimeoutError:
-            message = QtWidgets.QMessageBox()
-            message.warning(self, 'Warning', 'No connection to the Raspberry Pi!')
+            return False

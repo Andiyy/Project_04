@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """Creation and implementation of the menu."""
@@ -183,7 +182,7 @@ class Menu(QtWidgets.QMenuBar):
             return
 
         message.information(self, 'Information', 'Connection Successful!')
-        self.main_window.status_bar.lbl_nucleo.setText(f'Nucleo: {self.data.nukleo}')
+        self.main_window.status_bar.lbl_nucleo.setText(f'Nucleo: {self.data.nucleo}')
 
     def _connect_pi(self) -> bool:
         """Connect to Pi and setup.

@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
-"""Dialog to create a new measurement."""
+"""Dialog, connection to the Raspberry Pi."""
 
-from database.database import open_sqlite3
 
 from PyQt5 import QtWidgets, QtGui
 from collections import namedtuple
-import datetime
 
 
 class PiConnection(QtWidgets.QDialog):
-    """Dialog - new measurement."""
+    """Dialog - Connection Pi."""
     def __init__(self, *args, **kwargs):
         super(PiConnection, self).__init__(*args, **kwargs)
 
@@ -55,10 +53,13 @@ class PiConnection(QtWidgets.QDialog):
 
     def _button_test(self):
         """"""
-        # TODO testing the connection and updating the file
-        ip = self.le_ip.text()
-        port = self.sb_port.value()
-        name = self.le_name.text()
-        password = self.le_password.text()
+        raspberry_pi = namedtuple('Pi', ['ip', 'port', 'name', 'password'])
 
-        print(ip, port, name, password)
+        raspberry_pi.ip = self.le_ip.text()
+        raspberry_pi.port = self.sb_port.value()
+        raspberry_pi.name = self.le_name.text()
+        raspberry_pi.password = self.le_password.text()
+
+        self.data.raspberry_pi = raspberry_pi
+
+        self.accept()

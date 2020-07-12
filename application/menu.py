@@ -10,6 +10,8 @@ import os
 import sys
 from collections import namedtuple
 import paramiko
+import serial
+import socket
 
 
 class Menu(QtWidgets.QMenuBar):
@@ -49,7 +51,7 @@ class Menu(QtWidgets.QMenuBar):
 
         menu_tutorial.addAction(self.menu_getting_started)
 
-        # Pi
+        # Pi:
         menu_pi = QtWidgets.QMenu(self)
         menu_pi.setTitle('Raspberry Pi')
         menu_pi.setFont(font)
@@ -132,6 +134,7 @@ class Menu(QtWidgets.QMenuBar):
             message.information(self, 'Information', f'Connected to: {self.data.raspberry_pi.ip}')
 
         else:
+            self.data.raspberry_pi = None
             message.warning(self, 'Warning', 'No connection to the Raspberry Pi!')
 
     def _triggered_menu_pi_new(self):
@@ -143,10 +146,37 @@ class Menu(QtWidgets.QMenuBar):
         dialog_pi.set_data(data=self.data)
         if dialog_pi.exec_() != QtWidgets.QDialog.Accepted:
             message.warning(self, 'Warning', 'Connection Failed!')
-        else:
-            message.information(self, 'Information', 'Connection Successful!')
 
         del dialog_pi
+
+        if self._connect_pi():
+            message.information(self, 'Information', 'Connection Successful!')
+            with open('src/files/pi.txt', 'w') as file:
+                file.write(f'{self.data.raspberry_pi.ip}\n'
+                           f'{self.data.raspberry_pi.port}\n'
+                           f'{self.data.raspberry_pi.name}\n'
+                           f'{self.data.raspberry_pi.password}')
+
+        else:
+            message.warning(self, 'Warning', 'Connection Failed!')
+
+    def _connect_pi(self) -> bool:
+        """Connect to Pi and setup.
+        The connection to the Raspberry Pi is tested. Also the pigpiod is set to the Pi (Enables the GPIO control over
+        the SSH connection. If the connection fails, a message box is displayed.
+        """
+        try:
+            cmd = 'sudo pigpiod'
+
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(self.data.raspberry_pi.ip, self.data.raspberry_pi.port,
+                        self.data.raspberry_pi.name, self.data.raspberry_pi.password)
+            ssh.exec_command(cmd)
+            return True
+
+        except:
+            return False
 
     def _triggered_menu_nucleo(self):
         """"""
@@ -174,30 +204,14 @@ class Menu(QtWidgets.QMenuBar):
     def _test_nucleo(self):
         """Testing the connection to the Nucleo."""
         message = QtWidgets.QMessageBox()
-        # TODO test the connection
         try:
-            pass
-        except:
+            connection = serial.Serial(self.data.nucleo, 115200, timeout=2)
+            connection.close()
+
+        except serial.serialutil.SerialException:
             message.warning(self, 'Warning', 'Connection Failed!')
+            self.data.nucleo = None
             return
 
         message.information(self, 'Information', 'Connection Successful!')
         self.main_window.status_bar.lbl_nucleo.setText(f'Nucleo: {self.data.nucleo}')
-
-    def _connect_pi(self) -> bool:
-        """Connect to Pi and setup.
-        The connection to the Raspberry Pi is tested. Also the pigpiod is set to the Pi (Enables the GPIO control over
-        the SSH connection. If the connection fails, a message box is displayed.
-        """
-        try:
-            cmd = 'sudo pigpiod'
-
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(self.data.raspberry_pi.ip, self.data.raspberry_pi.port,
-                        self.data.raspberry_pi.name, self.data.raspberry_pi.password)
-            ssh.exec_command(cmd)
-            return True
-
-        except TimeoutError:
-            return False

@@ -13,7 +13,9 @@ import datetime
 
 @contextmanager
 def error_handler():
-    """Writes the errors into the error.txt file."""
+    """Contextmanager, error handler.
+    If an error accrues the error is written into the error.txt file.
+    """
     try:
         yield
 
@@ -35,5 +37,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """Creating the new frame."""
@@ -7,7 +6,6 @@ from application.run import RunProgram
 from database.database import open_sqlite3
 
 from PyQt5 import QtWidgets, QtGui
-import os
 
 
 class FrameNew(QtWidgets.QFrame):

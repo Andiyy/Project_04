@@ -18,7 +18,7 @@ class RunProgram:
     def __init__(self, data):
         self.data = data
 
-        self.factory = PiGPIOFactory(host='192.168.2.135')
+        self.factory = PiGPIOFactory(host=self.data.raspberry_pi.ip)
         self.relay_up = LED(23, pin_factory=self.factory)
         self.relay_down = LED(24, pin_factory=self.factory)
 
@@ -42,12 +42,18 @@ class RunProgram:
 
     def run_program(self):
         """Running the Program."""
-        usb = serial.Serial('COM3', 115200, timeout=2)
+        usb = serial.Serial(self.data.nucleo, 115200, timeout=2)
+        usb.reset_output_buffer()
+        usb.flushOutput()
+        usb.flush()
         nucleo = io.TextIOWrapper(io.BufferedRWPair(usb, usb))
         thread_relays = Thread(target=self._start, args=(self.data.new_measurement.h_length,))
 
+        print(f'Writing Start nucleo: {time.time()}')
         nucleo.write(str(self._output_mode) + "\n")
         nucleo.flush()
+        print(f'Flushing nucleo: {time.time()}')
+
         thread_relays.start()
 
         for i in range(self._steps):
@@ -63,12 +69,16 @@ class RunProgram:
         usb.close()
 
         self._update_values()
+        self.factory.close()
 
     def _start(self, duration: int):
         """Starting the motor."""
+        print(f'Start process relay: {time.time()}')
         time.sleep(0.5)
+        print(f'Start motor: {time.time()}')
         self.relay_up.on()
         time.sleep(duration)
+        print(f'Stop motor: {time.time()}')
         self.relay_up.off()
 
     def _update_values(self):

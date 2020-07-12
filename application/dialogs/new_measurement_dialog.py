@@ -49,7 +49,7 @@ class NewMeasurement(QtWidgets.QDialog):
         """Button create.
         Getting the user input from the widgets.
         Creating the new measurement in the database.
-        Closing the Dialog
+        Closing the Dialog.
         """
         weight = self.sb_weight.value()
         length = self.sb_length.value()

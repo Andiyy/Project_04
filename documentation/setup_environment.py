@@ -19,4 +19,4 @@ if __name__ == '__main__':
     install_module('gpiozero')
     install_module('paramiko')
     install_module('pigpio')
-    install_module('serial')
+    install_module('pyserial')

@@ -3,7 +3,8 @@
 """Creation and implementation of the menu."""
 
 
-from application.dialogs import pi_dialog
+from application.dialogs import pi_dialog, new_user_dialog
+from database.database import open_sqlite3
 
 from PyQt5 import QtWidgets, QtGui
 import os
@@ -11,7 +12,6 @@ import sys
 from collections import namedtuple
 import paramiko
 import serial
-import socket
 
 
 class Menu(QtWidgets.QMenuBar):
@@ -84,11 +84,22 @@ class Menu(QtWidgets.QMenuBar):
         menu_nucleo.addAction(self.nucleo_com_5)
         menu_nucleo.addAction(self.nucleo_com_6)
 
+        # User:
+        menu_user = QtWidgets.QMenu(self)
+        menu_user.setTitle('User')
+        menu_user.setFont(font)
+
+        self.user_add = QtWidgets.QAction('Add User', self)
+        self.user_add.setShortcutVisibleInContextMenu(True)
+
+        menu_user.addAction(self.user_add)
+
         # Adding the menus to the menubar:
         self.addMenu(menu_file)
         self.addMenu(menu_tutorial)
         self.addMenu(menu_pi)
         self.addMenu(menu_nucleo)
+        self.addMenu(menu_user)
 
     def _connect_menu(self):
         """Connecting the menu widgets to the methods."""
@@ -107,6 +118,8 @@ class Menu(QtWidgets.QMenuBar):
         self.nucleo_com_4.triggered.connect(self._triggered_menu_nucleo)
         self.nucleo_com_5.triggered.connect(self._triggered_menu_nucleo)
         self.nucleo_com_6.triggered.connect(self._triggered_menu_nucleo)
+
+        self.user_add.triggered.connect(self._triggered_menu_user_add)
 
     @staticmethod
     def _triggered_menu_close():
@@ -215,3 +228,18 @@ class Menu(QtWidgets.QMenuBar):
 
         message.information(self, 'Information', 'Connection Successful!')
         self.main_window.status_bar.lbl_nucleo.setText(f'Nucleo: {self.data.nucleo}')
+
+    def _triggered_menu_user_add(self):
+        """Adding a user to the database.
+        Creating the new user dialog.
+        """
+        message = QtWidgets.QMessageBox()
+
+        dialog_new_user = new_user_dialog.NewUserDialog(self)
+        dialog_new_user.set_data(data=self.data)
+        if dialog_new_user.exec_() != QtWidgets.QDialog.Accepted:
+            message.warning(self, 'Warning', 'No user was created!')
+        else:
+            message.information(self, 'Warning', 'User was successfully created!')
+
+        del dialog_new_user

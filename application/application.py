@@ -61,6 +61,14 @@ class Application(main_window.MainWindow):
 
     def _button_h_new(self):
         """Updating the main window and showing the new frame."""
+        message = QtWidgets.QMessageBox()
+        if not self.data.raspberry_pi:
+            message.warning(self, 'Warning', 'First a connection to Raspberry Pi must be created.')
+            return
+        elif not self.data.nucleo:
+            message.warning(self, 'Warning', 'First a connection to Nucleo must be created.')
+            return
+
         self.frame_open.lw_load_data()
 
         dialog = new_measurement_dialog.NewMeasurement()

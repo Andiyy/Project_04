@@ -110,7 +110,9 @@ class Menu(QtWidgets.QMenuBar):
         self.menu_getting_started.setShortcut(QtGui.QKeySequence('F1'))
 
         self.menu_pi_quick_connect.triggered.connect(self._triggered_menu_pi_quick)
+        self.menu_pi_quick_connect.setShortcut(QtGui.QKeySequence('F2'))
         self.menu_pi_new_connection.triggered.connect(self._triggered_menu_pi_new)
+        self.menu_pi_new_connection.setShortcut(QtGui.QKeySequence('F3'))
 
         self.nucleo_com_1.triggered.connect(self._triggered_menu_nucleo)
         self.nucleo_com_2.triggered.connect(self._triggered_menu_nucleo)
@@ -119,7 +121,15 @@ class Menu(QtWidgets.QMenuBar):
         self.nucleo_com_5.triggered.connect(self._triggered_menu_nucleo)
         self.nucleo_com_6.triggered.connect(self._triggered_menu_nucleo)
 
+        self.nucleo_com_1.setShortcut(QtGui.QKeySequence('Ctrl+1'))
+        self.nucleo_com_2.setShortcut(QtGui.QKeySequence('Ctrl+2'))
+        self.nucleo_com_3.setShortcut(QtGui.QKeySequence('Ctrl+3'))
+        self.nucleo_com_4.setShortcut(QtGui.QKeySequence('Ctrl+4'))
+        self.nucleo_com_5.setShortcut(QtGui.QKeySequence('Ctrl+5'))
+        self.nucleo_com_6.setShortcut(QtGui.QKeySequence('Ctrl+6'))
+
         self.user_add.triggered.connect(self._triggered_menu_user_add)
+        self.user_add.setShortcut(QtGui.QKeySequence('F4'))
 
     @staticmethod
     def _triggered_menu_close():

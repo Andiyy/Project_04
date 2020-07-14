@@ -2,7 +2,7 @@
 
 """"""
 
-
+from PyQt5 import QtWidgets
 from gpiozero import LED
 from gpiozero.pins.pigpio import PiGPIOFactory
 import numpy as np
@@ -15,14 +15,15 @@ import time
 class RunProgram:
     """"""
 
-    def __init__(self, data):
+    def __init__(self, data, main_window):
         self.data = data
+        self.main_window = main_window
 
         self.factory = PiGPIOFactory(host=self.data.raspberry_pi.ip)
         self.relay_up = LED(23, pin_factory=self.factory)
         self.relay_down = LED(24, pin_factory=self.factory)
 
-        self._steps = self.data.new_measurement.h_length * 100 + 100
+        self._steps = self.data.new_measurement.h_length * 100 + 150
 
         # Raw data:
         self.raw_current = np.zeros(self._steps)
@@ -36,11 +37,11 @@ class RunProgram:
         self.rpm = []
         self.frequency = np.arange(0, self._steps, 50)
         self.time = np.arange(0, self.data.new_measurement.h_length, 0.01)
-        self.time_rpm = [i/2 for i in range(0, self.data.new_measurement.h_length * 2, 1)]
+        self.time_rpm = [i / 2 for i in range(0, self.data.new_measurement.h_length * 2, 1)]
 
         self._output_mode = self._nucleo_output_mode(analog_input=3, frequency=3, low_pass_filter=True)
 
-    def run_program(self):
+    def run_program(self) -> bool:
         """Running the Program."""
         usb = serial.Serial(self.data.nucleo, 115200, timeout=2)
         usb.reset_output_buffer()
@@ -56,35 +57,43 @@ class RunProgram:
 
         thread_relays.start()
 
-        for i in range(self._steps):
-            data = nucleo.readline()
-            split_data = data.split(' ')
+        try:
+            for i in range(self._steps):
 
-            self.raw_current[i] = int(split_data[0])
-            self.raw_voltage[i] = int(split_data[1])
-            self.raw_rpm[i] = int(split_data[2])
+                # raise ValueError
 
-        nucleo.write("\n")
-        nucleo.flush()
-        usb.close()
+                data = nucleo.readline()
+                split_data = data.split(' ')
+
+                self.raw_current[i] = int(split_data[0])
+                self.raw_voltage[i] = int(split_data[1])
+                self.raw_rpm[i] = int(split_data[2])
+        except ValueError:
+            self.relay_up.off()
+            message = QtWidgets.QMessageBox()
+            message.warning(self.main_window, 'Warning', 'The Nucleo has sent an invalid value. Please check the '
+                                                         'connection and press the reset button if necessary!')
+            return False
+        finally:
+            nucleo.write("\n")
+            nucleo.flush()
+            usb.close()
+            self.factory.close()
 
         self._update_values()
-        self.factory.close()
+        return True
 
     def _start(self, duration: int):
         """Starting the motor."""
-        print(f'Start process relay: {time.time()}')
         time.sleep(0.5)
-        print(f'Start motor: {time.time()}')
         self.relay_up.on()
         time.sleep(duration)
-        print(f'Stop motor: {time.time()}')
         self.relay_up.off()
 
     def _update_values(self):
         """Updating the values."""
         for index, element in enumerate(self.raw_current):
-            self.current[index] = (element - 2904.99) * 0.000805664 / 0.185  # Offset: 2904.9977153301347
+            self.current[index] = (element - 2755) * 0.000805664 / 0.185
 
         for index, element in enumerate(self.raw_voltage):
             self.voltage[index] = element * 0.000805664 / 0.195
@@ -103,8 +112,8 @@ class RunProgram:
                     counter += 1
 
                 if index in self.frequency:
-                    current_rpm = counter/6
-                    self.rpm.append(current_rpm)
+                    current_rpm = counter / 6
+                    self.rpm.append(current_rpm * 120)
                     counter = 0
 
         except IndexError:

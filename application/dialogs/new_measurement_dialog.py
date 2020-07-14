@@ -23,13 +23,14 @@ class NewMeasurement(QtWidgets.QDialog):
         self.setFont(QtGui.QFont('Calibri', 12))
 
         lbl_weight = QtWidgets.QLabel('Weight:')
-        self.sb_weight = QtWidgets.QSpinBox()
+        self.sb_weight = QtWidgets.QDoubleSpinBox()
         self.sb_weight.setMaximum(10)
 
         lbl_length = QtWidgets.QLabel('Length:')
         self.sb_length = QtWidgets.QSpinBox()
         self.sb_length.setMinimum(1)
-        self.sb_length.setMaximum(5)
+        self.sb_length.setMaximum(7)
+        self.sb_length.setValue(7)
 
         self.pb_create = QtWidgets.QPushButton('Create')
         self.pb_create.clicked.connect(self._button_create)

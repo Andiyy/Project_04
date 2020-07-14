@@ -16,6 +16,7 @@ if __name__ == '__main__':
     install_module('PyQt5')
     install_module('numpy')
     install_module('matplotlib')
+    install_module('seaborn')
     install_module('gpiozero')
     install_module('paramiko')
     install_module('pigpio')

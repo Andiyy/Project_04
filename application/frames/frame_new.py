@@ -50,9 +50,12 @@ class FrameNew(QtWidgets.QFrame):
 
     def update_widgets(self):
         """Updating the widgets."""
-        self.run = RunProgram(data=self.data)
+        self.run = RunProgram(data=self.data, main_window=self.main_window)
         self.pb_show_diagram.setDisabled(True)
         self.pb_start.setEnabled(True)
+
+        self.pb_up.setEnabled(True)
+        self.pb_down.setEnabled(True)
 
     def _connect_methods(self):
         """Connecting the widgets to the methods."""
@@ -65,10 +68,12 @@ class FrameNew(QtWidgets.QFrame):
 
     def _button_start(self):
         """Starting the measurement."""
-        self.run.run_program()
-        self._write_data()
-        self.pb_start.setDisabled(True)
-        self.pb_show_diagram.setEnabled(True)
+        if self.run.run_program():
+            self._write_data()
+            self.pb_start.setDisabled(True)
+            self.pb_show_diagram.setEnabled(True)
+            self.pb_up.setDisabled(True)
+            self.pb_down.setDisabled(True)
 
     def _button_up_pressed(self):
         """Moving up."""

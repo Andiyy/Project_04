@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sun May  6 20:37:27 2018
-@author: user
+
+"""Test program for the Nucleo.
+
+The motor must be controlled manually in this program. To do this, the relays would have to be bypassed and the motor
+would have to be switched on and off via the output mode of the power supply unit.
+
+IMPORTANT: Not at the current state of the main programme!!!
 """
 
 import serial
@@ -11,7 +15,6 @@ import matplotlib.pyplot as plt
 
 
 def nucleo_output_mode(analog_input, frequency, low_pass_filter=True) -> int:
-    """"""
     if low_pass_filter:
         return 10 * analog_input + frequency
     elif not low_pass_filter:
@@ -52,12 +55,9 @@ usb.close()
 
 for element in raw_current:
     current.append((int(element) - 2904.99) * 0.000805664 / 0.185)
-    # Offset: 2904.9977153301347
 
 for element in raw_voltage:
     voltage.append(int(element) * 0.000805664 / 0.195)
-    # 12V -> 0.1951721502
-    # 06V -> 0.1913102134
 
 for element in raw_rpm:
     value = int(element) * 0.000805664

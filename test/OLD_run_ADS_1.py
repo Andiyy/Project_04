@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+
+"""Old measuring program!
+For use, the corresponding modules must be installed and the structure must be adapted. Furthermore, this program must
+be executed on the Raspberry Pi.
+
+Without Nucleo.
+
+The program is for documentation purposes only!!!
+"""
+
 import time
 import numpy as np
 import board
@@ -119,7 +130,7 @@ class RunProgram:
         for index, value in enumerate(self.data.measured_values['Current']):
             self.data.measured_values['Current'][index] = (value - bit_current) * 0.125 / 185
 
-        zähler = 0
+        counter = 0
         test = []
         try:
             for index, element in enumerate(self.data.measured_values['RPM']):
@@ -130,11 +141,11 @@ class RunProgram:
 
             for index, element in enumerate(test):
                 if element is True and test[index+1] is False:
-                    zähler += 1
+                    counter += 1
         except IndexError:
-            print(f'Zähler: {zähler}')
+            print(f'Zähler: {counter}')
 
-        print(f'Zähler: {zähler}')
+        print(f'Zähler: {counter}')
 
 
 def clear():

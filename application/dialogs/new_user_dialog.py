@@ -9,14 +9,14 @@ from PyQt5 import QtWidgets, QtGui
 
 
 class NewUserDialog(QtWidgets.QDialog):
-    """Dialog - User."""
+    """Dialog - New user."""
     def __init__(self, *args, **kwargs):
         super(NewUserDialog, self).__init__(*args, **kwargs)
 
-        # User data:
-        self.user_data = []
         self.data = None
 
+        # User data:
+        self.user_data = []
         self.name = None
         self.email = None
 
@@ -51,7 +51,8 @@ class NewUserDialog(QtWidgets.QDialog):
     def _button_create(self):
         """Button create new user.
         First the user inputs are read in and checked. If they are incorrect, an error message is displayed.
-        If the data is ok, a new entry is created in the database. At last the dialog is closed.
+        If the data is ok, a new entry is created in the database.
+        At last the dialog is closed.
         """
         message = QtWidgets.QMessageBox()
 

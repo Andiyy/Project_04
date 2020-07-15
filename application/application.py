@@ -19,12 +19,7 @@ class Application(main_window.MainWindow):
 
         self.data = data.Data()
 
-        # Dialog:
-        dialog_user = user_dialog.UserDialog(self)
-        dialog_user.set_data(data=self.data)
-        if dialog_user.exec_() != QtWidgets.QDialog.Accepted:
-            sys.exit()
-        del dialog_user
+        self._user_dialog()
 
         # Menu:
         self.menu_bar = menu.Menu(data=self.data, main_window=self)
@@ -43,6 +38,16 @@ class Application(main_window.MainWindow):
 
         self._connect_methods()
 
+    def _user_dialog(self):
+        """Creating the user dialog.
+        If the dialog was accepted the program starts. If not, the program is closed.
+        """
+        dialog_user = user_dialog.UserDialog(self)
+        dialog_user.set_data(data=self.data)
+        if dialog_user.exec_() != QtWidgets.QDialog.Accepted:
+            sys.exit()
+        del dialog_user
+
     def _connect_methods(self):
         """Connecting the widgets of the main window to the methods."""
         self.frame_sidebar.pb_h_open.clicked.connect(self._button_h_open)
@@ -60,7 +65,9 @@ class Application(main_window.MainWindow):
         self.frame_open.lw_load_data()
 
     def _button_h_new(self):
-        """Updating the main window and showing the new frame."""
+        """Updating the main window and showing the new frame.
+        If no connection is established to the devices, an error message is displayed.
+        """
         message = QtWidgets.QMessageBox()
         if not self.data.raspberry_pi:
             message.warning(self, 'Warning', 'First a connection to Raspberry Pi must be created.')
@@ -71,12 +78,14 @@ class Application(main_window.MainWindow):
 
         self.frame_open.lw_load_data()
 
+        # Creating the NewMeasurement dialog:
         dialog = new_measurement_dialog.NewMeasurement()
         dialog.set_data(data=self.data)
         if dialog.exec_() != QtWidgets.QDialog.Accepted:
             return
         del dialog
 
+        # Updating the main window:
         self.central_layout.removeWidget(self.frame_open)
         self.frame_open.hide()
 

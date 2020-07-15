@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 
-""""""
+"""Old measuring program!
+For use, the corresponding modules must be installed and the structure must be adapted. Furthermore, this program must
+be executed on the Raspberry Pi.
+
+With Nucleo.
+
+The program is for documentation purposes only!!!
+"""
 
 
 import RPi.GPIO as GPIO

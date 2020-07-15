@@ -44,7 +44,6 @@ class FrameNew(QtWidgets.QFrame):
         grid_layout.addItem(spacer_3, 1, 0)
         grid_layout.addWidget(lbl_start, 2, 0)
         grid_layout.addWidget(self.pb_start, 2, 1)
-        grid_layout.addWidget(self.pb_show_diagram, 2, 2)
         grid_layout.addItem(spacer_1, 3, 1)
         grid_layout.addItem(spacer_2, 3, 3)
 
@@ -64,7 +63,6 @@ class FrameNew(QtWidgets.QFrame):
         self.pb_up.released.connect(self._button_up_released)
         self.pb_down.pressed.connect(self._button_down_pressed)
         self.pb_down.released.connect(self._button_down_released)
-        self.pb_show_diagram.clicked.connect(self._button_show_diagram)
 
     def _button_start(self):
         """Starting the measurement."""
@@ -90,10 +88,6 @@ class FrameNew(QtWidgets.QFrame):
     def _button_down_released(self):
         """Moving down."""
         self.run.relay_down.off()
-
-    def _button_show_diagram(self):
-        """Showing the Diagram."""
-        # TODO: Opening the diagram!
 
     def _write_data(self):
         """'Writing the data into the database."""

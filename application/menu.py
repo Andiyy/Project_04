@@ -139,10 +139,12 @@ class Menu(QtWidgets.QMenuBar):
     @staticmethod
     def _triggered_menu_getting_started():
         """Opening the tutorial."""
-        os.startfile(fr'{os.curdir}\application\files\user_documentation\user_documentation.pdf')
+        os.startfile(fr'{os.curdir}\src\user_documentation\user_documentation.pdf')
 
     def _triggered_menu_pi_quick(self):
-        """"""
+        """Reconnect with last successful connection to Pi.
+        Opening the pi.txt file, and testing the connection with the data.
+        """
         message = QtWidgets.QMessageBox()
         raspberry_pi = namedtuple('Pi', ['ip', 'port', 'name', 'password'])
 
@@ -162,14 +164,14 @@ class Menu(QtWidgets.QMenuBar):
 
     def _triggered_menu_pi_new(self):
         """Testing the connection to the pi.
-        First the dialog is opened, then the user is notified.
+        First the dialog is opened, then the user is notified if the connection was successful or not.
         """
         message = QtWidgets.QMessageBox()
+
         dialog_pi = pi_dialog.PiConnection(self)
         dialog_pi.set_data(data=self.data)
         if dialog_pi.exec_() != QtWidgets.QDialog.Accepted:
             message.warning(self, 'Warning', 'Connection Failed!')
-
         del dialog_pi
 
         if self._connect_pi():
@@ -186,7 +188,7 @@ class Menu(QtWidgets.QMenuBar):
     def _connect_pi(self) -> bool:
         """Connect to Pi and setup.
         The connection to the Raspberry Pi is tested. Also the pigpiod is set to the Pi (Enables the GPIO control over
-        the SSH connection. If the connection fails, a message box is displayed.
+        the SSH connection). If the connection fails, a message box is displayed.
         """
         try:
             cmd = 'sudo pigpiod'
@@ -202,7 +204,10 @@ class Menu(QtWidgets.QMenuBar):
             return False
 
     def _triggered_menu_nucleo(self):
-        """"""
+        """Testing the connection to the Nucleo.
+        First the widget that sent the signal is verified. The connection to the Nucleo is tested accordingly.
+        The user is then notified whether the connection was successful or not.
+        """
         sender = self.sender()
         port = 'COM'
         if sender == self.nucleo_com_1:
@@ -225,7 +230,9 @@ class Menu(QtWidgets.QMenuBar):
         self._test_nucleo()
 
     def _test_nucleo(self):
-        """Testing the connection to the Nucleo."""
+        """Testing the connection to the Nucleo.
+        Test the connection with the Nucleo to the designated COM port.
+        """
         message = QtWidgets.QMessageBox()
         try:
             connection = serial.Serial(self.data.nucleo, 115200, timeout=2)

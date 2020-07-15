@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""""""
+"""Measurement."""
 
 from PyQt5 import QtWidgets
 from gpiozero import LED
@@ -13,19 +13,55 @@ import time
 
 
 class RunProgram:
-    """"""
+    """Stating the measurement and storing the data."""
 
     def __init__(self, data, main_window):
         self.data = data
         self.main_window = main_window
 
+        self._initialize_pi()
+        self._initialize_nucleo_output_mode(analog_input=3, frequency=3, low_pass_filter=True)
+        self._raw_data()
+
+    def _initialize_pi(self):
+        """Initialize Raspberry Pi."""
         self.factory = PiGPIOFactory(host=self.data.raspberry_pi.ip)
         self.relay_up = LED(23, pin_factory=self.factory)
         self.relay_down = LED(24, pin_factory=self.factory)
 
+    def _initialize_nucleo_output_mode(self, analog_input: (1, 2, 3), frequency: (1, 2, 3, 4), low_pass_filter=True):
+        """Setting up the nucleo output mode.
+
+        :param analog_input:    1 -> A0
+                                2 -> A0, A1
+                                3 -> A0, A1, A2
+        :param frequency:       1 -> 1Hz
+                                2 -> 10Hz
+                                3 -> 100Hz
+                                4 -> 1000Hz
+        :param low_pass_filter: True  -> On
+                                False -> Off
+
+        The low pass filter can only be active if the frequency is less or equal to 3
+        """
+        if low_pass_filter and frequency == 4:
+            raise ValueError('The low pass filter can only be active if the frequency is less or equal to 3')
+
+        if low_pass_filter:
+            self._output_mode = str(10 * analog_input + frequency)
+        elif not low_pass_filter:
+            self._output_mode = str(-10 * analog_input + frequency)
+
+    def _raw_data(self):
+        """Creating the Arrays.
+
+        steps:          *100 -> 100Hz Nucleo
+                        +150 -> 0.5 Seconds idle at Start and 1 Second idle at the end.
+
+        time_rpm:       time * 2 (all 0.5s)
+        """
         self._steps = self.data.new_measurement.h_length * 100 + 150
 
-        # Raw data:
         self.raw_current = np.zeros(self._steps)
         self.raw_voltage = np.zeros(self._steps)
         self.raw_rpm = np.zeros(self._steps)
@@ -36,13 +72,12 @@ class RunProgram:
         self.voltage = np.zeros(self._steps)
         self.rpm = []
         self.frequency = np.arange(0, self._steps, 50)
-        self.time = np.arange(0, self.data.new_measurement.h_length, 0.01)
         self.time_rpm = [i / 2 for i in range(0, self.data.new_measurement.h_length * 2, 1)]
-
-        self._output_mode = self._nucleo_output_mode(analog_input=3, frequency=3, low_pass_filter=True)
 
     def run_program(self) -> bool:
         """Running the Program."""
+
+        # Setting the Nucleo up:
         usb = serial.Serial(self.data.nucleo, 115200, timeout=2)
         usb.reset_output_buffer()
         usb.flushOutput()
@@ -50,31 +85,28 @@ class RunProgram:
         nucleo = io.TextIOWrapper(io.BufferedRWPair(usb, usb))
         thread_relays = Thread(target=self._start, args=(self.data.new_measurement.h_length,))
 
-        print(f'Writing Start nucleo: {time.time()}')
+        # Starting the Nucleo and the thread:
         nucleo.write(str(self._output_mode) + "\n")
         nucleo.flush()
-        print(f'Flushing nucleo: {time.time()}')
-
         thread_relays.start()
 
         try:
             for i in range(self._steps):
-
-                # raise ValueError
-
                 data = nucleo.readline()
                 split_data = data.split(' ')
 
                 self.raw_current[i] = int(split_data[0])
                 self.raw_voltage[i] = int(split_data[1])
                 self.raw_rpm[i] = int(split_data[2])
-        except ValueError:
+
+        except ValueError:                  # Sometime the Nucleo returns invalid data
             self.relay_up.off()
             message = QtWidgets.QMessageBox()
             message.warning(self.main_window, 'Warning', 'The Nucleo has sent an invalid value. Please check the '
                                                          'connection and press the reset button if necessary!')
             return False
-        finally:
+
+        finally:                            # Resetting the Nucleo
             nucleo.write("\n")
             nucleo.flush()
             usb.close()
@@ -99,9 +131,7 @@ class RunProgram:
             self.voltage[index] = element * 0.000805664 / 0.195
 
         for index, element in enumerate(self.raw_rpm):
-            value = element * 0.000805664
-
-            if value > 1.65:
+            if element > 2000:
                 self.bit_rpm[index] = 1
 
         counter = 0
@@ -112,34 +142,38 @@ class RunProgram:
                     counter += 1
 
                 if index in self.frequency:
-                    current_rpm = counter / 6
+                    current_rpm = counter / 12
                     self.rpm.append(current_rpm * 120)
                     counter = 0
 
-        except IndexError:
+        except IndexError:              # If the last entry is a 1
             pass
 
         self.data.measured_values['Current'] = self.current
         self.data.measured_values['Voltage'] = self.voltage
         self.data.measured_values['RPM'] = self.rpm
 
-    @staticmethod
-    def _nucleo_output_mode(analog_input: (1, 2, 3), frequency: (1, 2, 3, 4), low_pass_filter=True) -> int:
-        """Setting up the nucleo output mode.
+    def _show_raw_rpm(self):
+        """Showing the rpm signal as diagram."""
+        import matplotlib.pyplot as plt
+        import seaborn as sns
 
-        :param analog_input:    1 -> A0
-                                2 -> A0, A1
-                                3 -> A0, A1, A2
-        :param frequency:       1 -> 1Hz
-                                2 -> 10Hz
-                                3 -> 100Hz
-                                4 -> 1000Hz
-        :param low_pass_filter: True  -> On
-                                False -> Off
+        fig, ax = plt.subplots()
 
-        :return Integer for the output mode.
-        """
-        if low_pass_filter:
-            return 10 * analog_input + frequency
-        elif not low_pass_filter:
-            return - 10 * analog_input + frequency
+        fig.dpi = 100
+
+        sns.set_style('whitegrid')
+
+        time = np.arange(0, self.data.new_measurement.h_length + 1.5, 0.01)
+
+        ax.plot(time, self.raw_rpm)
+
+        ax.set_xlabel('Time in s')
+        ax.set_ylabel('RPM in 1/min')
+
+        ax.grid()
+        plt.show()
+
+        fig.savefig('Bild.png', transparent=True)
+
+

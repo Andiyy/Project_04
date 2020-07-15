@@ -52,7 +52,9 @@ class PiConnection(QtWidgets.QDialog):
         self.data = data
 
     def _button_test(self):
-        """"""
+        """Button test connection.
+        Updating the data object and accepting the dialog.
+        """
         raspberry_pi = namedtuple('Pi', ['ip', 'port', 'name', 'password'])
 
         raspberry_pi.ip = self.le_ip.text()

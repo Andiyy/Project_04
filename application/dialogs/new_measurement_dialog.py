@@ -59,7 +59,7 @@ class NewMeasurement(QtWidgets.QDialog):
 
         self.accept()
 
-    def _create_new_measurement(self, weight: int, length: int):
+    def _create_new_measurement(self, weight: float, length: int):
         """Creating a new measurement in the database."""
         tuple_data = namedtuple('m_header', ['h_id', 'u_id', 'h_date', 'h_weight', 'h_length'])
 

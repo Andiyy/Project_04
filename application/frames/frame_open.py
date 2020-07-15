@@ -114,7 +114,7 @@ class FrameOpen(QtWidgets.QFrame):
 
     def _plot(self):
         """Opening the plot."""
-        self.test()
+        # self.test()
 
         sns.set_style('whitegrid')
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-"""Widgets for the main window."""
+"""Dialog to chose witch user is testing."""
+
 
 from database.database import open_sqlite3
 
@@ -9,7 +10,7 @@ import collections
 
 
 class UserDialog(QtWidgets.QDialog):
-    """The visual layout of the GUI."""
+    """Dialog - User."""
     def __init__(self, *args, **kwargs):
         super(UserDialog, self).__init__(*args, **kwargs)
 
@@ -17,24 +18,24 @@ class UserDialog(QtWidgets.QDialog):
         self.user_data = []
         self.data = None
 
-        self.create_widgets()
+        self._create_widgets()
 
-    def create_widgets(self):
+    def _create_widgets(self):
         """Creating the widgets."""
         self.setWindowTitle('Select User')
         self.setFont(QtGui.QFont('Calibri', 12))
 
         lbl_user = QtWidgets.QLabel('User:')
         self.cb_user = QtWidgets.QComboBox()
-        self.add_items()
+        self._add_items()
 
         self.pb_start = QtWidgets.QPushButton()
         self.pb_start.setText('Start')
-        self.pb_start.clicked.connect(self.button_start)
+        self.pb_start.clicked.connect(self._button_start)
 
         self.pb_exit = QtWidgets.QPushButton()
         self.pb_exit.setText('Exit')
-        self.pb_exit.clicked.connect(self.button_exit)
+        self.pb_exit.clicked.connect(self._button_exit)
 
         grid_layout = QtWidgets.QGridLayout(self)
         grid_layout.addWidget(lbl_user, 0, 0)
@@ -46,8 +47,11 @@ class UserDialog(QtWidgets.QDialog):
         """Creating the data object."""
         self.data = data
 
-    def add_items(self):
-        """Adding items to the combo box."""
+    def _add_items(self):
+        """Adding items to the combo box.
+        Creating a namedtuple then getting the data from the database.
+        Updating the combobox.
+        """
         n_tuple = collections.namedtuple('user_data', ['u_id', 'u_name', 'u_email'])
 
         # Database:
@@ -59,13 +63,15 @@ class UserDialog(QtWidgets.QDialog):
             self.cb_user.addItem(row[1])
             self.user_data.append(n_tuple(*row))
 
-    def button_start(self):
-        """Starting the program."""
+    def _button_start(self):
+        """Starting the program.
+        Getting the selected person. Closing the dialog and starting the application.
+        """
         index = self.cb_user.currentIndex()
         self.data.user = self.user_data[index]
 
         self.accept()
 
-    def button_exit(self):
+    def _button_exit(self):
         """Closing the program."""
         self.reject()

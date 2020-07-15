@@ -1,0 +1,4 @@
+2020-07-04 21:32:46.497529, (<class 'KeyboardInterrupt'>, KeyboardInterrupt(), <traceback object at 0x0503D488>)
+2020-07-05 15:58:30.589715, (<class 'KeyboardInterrupt'>, KeyboardInterrupt(), <traceback object at 0x0486C648>)
+2020-07-05 15:59:53.971386, (<class 'KeyboardInterrupt'>, KeyboardInterrupt(), <traceback object at 0x0460C4C8>)
+2020-07-05 16:02:39.498711, (<class 'KeyboardInterrupt'>, KeyboardInterrupt(), <traceback object at 0x04C6C5C8>)

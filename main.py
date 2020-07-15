@@ -13,14 +13,17 @@ import datetime
 
 @contextmanager
 def error_handler():
-    """Writes the errors into the error.txt file."""
+    """Contextmanager, error handler.
+    If an error accrues the error is written into the error.txt file.
+    """
     try:
         yield
+
     finally:
         error = sys.exc_info()
 
         if error[0] is not None and error[0] != SystemExit:
-            with open('application/files/error.txt', 'a') as file:
+            with open('src/files/error.txt', 'a') as file:
                 file.write(f'{datetime.datetime.now()}, {error}\n')
 
 

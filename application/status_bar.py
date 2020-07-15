@@ -19,3 +19,9 @@ class Statusbar(QtWidgets.QStatusBar):
 
         self.lbl_user = QtWidgets.QLabel(f'  {data.user.u_name}  ')
         self.addPermanentWidget(self.lbl_user)
+
+        self.lbl_pi = QtWidgets.QLabel('  Pi-IP: Not Connected  ')
+        self.addPermanentWidget(self.lbl_pi)
+
+        self.lbl_nucleo = QtWidgets.QLabel('  Nucleo: Not Connected  ')
+        self.addPermanentWidget(self.lbl_nucleo)

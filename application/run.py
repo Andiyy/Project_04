@@ -75,9 +75,12 @@ class RunProgram:
         self.time_rpm = [i / 2 for i in range(0, self.data.new_measurement.h_length * 2, 1)]
 
     def run_program(self) -> bool:
-        """Running the Program."""
-
-        # Setting the Nucleo up:
+        """Running the Program.
+        First the serial port and the connected Nucleo are set up.
+        The motor control is started in another thread. This runs simultaneously with the readout of the measurement
+        data.
+        Et the end the the Nucleo is stopped and the port is closed.
+        """
         usb = serial.Serial(self.data.nucleo, 115200, timeout=2)
         usb.reset_output_buffer()
         usb.flushOutput()
@@ -116,7 +119,7 @@ class RunProgram:
         return True
 
     def _start(self, duration: int):
-        """Starting the motor."""
+        """THREAD: Starting the motor."""
         time.sleep(0.5)
         self.relay_up.on()
         time.sleep(duration)
@@ -153,8 +156,13 @@ class RunProgram:
         self.data.measured_values['Voltage'] = self.voltage
         self.data.measured_values['RPM'] = self.rpm
 
+        # self._show_raw_rpm()          Showing the raw rpm data.
+
     def _show_raw_rpm(self):
-        """Showing the rpm signal as diagram."""
+        """Showing the rpm signal as diagram.
+
+        NOT USED!
+        You can coll the method at the end of the _update_values method."""
         import matplotlib.pyplot as plt
         import seaborn as sns
 
@@ -164,9 +172,9 @@ class RunProgram:
 
         sns.set_style('whitegrid')
 
-        time = np.arange(0, self.data.new_measurement.h_length + 1.5, 0.01)
+        x_time = np.arange(0, self.data.new_measurement.h_length + 1.5, 0.01)
 
-        ax.plot(time, self.raw_rpm)
+        ax.plot(x_time, self.raw_rpm)
 
         ax.set_xlabel('Time in s')
         ax.set_ylabel('RPM in 1/min')
@@ -174,6 +182,4 @@ class RunProgram:
         ax.grid()
         plt.show()
 
-        fig.savefig('Bild.png', transparent=True)
-
-
+        fig.savefig(f'{str(time.time()).replace(".", "_")}.png', transparent=True)

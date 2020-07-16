@@ -10,6 +10,8 @@ import serial
 import io
 from threading import Thread
 import time
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 

@@ -10,6 +10,8 @@ import serial
 import io
 from threading import Thread
 import time
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 
 class RunProgram:
@@ -56,23 +58,41 @@ class RunProgram:
         """Creating the Arrays.
 
         steps:          *100 -> 100Hz Nucleo
-                        +150 -> 0.5 Seconds idle at Start and 1 Second idle at the end.
-
-        time_rpm:       time * 2 (all 0.5s)
+                        +200 -> 1 Seconds idle at start and the end.
         """
-        self._steps = self.data.new_measurement.h_length * 100 + 150
+        self._steps = self.data.new_measurement.h_length * 100 + 200
 
-        self.raw_current = np.zeros(self._steps)
-        self.raw_voltage = np.zeros(self._steps)
         self.raw_rpm = np.zeros(self._steps)
         self.bit_rpm = np.zeros(self._steps)
 
         # Final data:
+        self.time = np.arange(0, self.data.new_measurement.h_length + 2, 0.01)
         self.current = np.zeros(self._steps)
         self.voltage = np.zeros(self._steps)
         self.rpm = []
         self.frequency = np.arange(0, self._steps, 50)
-        self.time_rpm = [i / 2 for i in range(0, self.data.new_measurement.h_length * 2, 1)]
+
+    def _live_plot_update(self, _):
+        """Updating the live plot data.
+        Can only be called by the method _live_plot!
+        """
+        plt.cla()
+        plt.plot(self.time, self.current, label='Current')
+        plt.plot(self.time, self.voltage, label='Voltage')
+        plt.legend(loc='upper right')
+        plt.tight_layout()
+
+    def _live_plot(self):
+        """THREAD: Creating the live plot.
+        The graphic is updated every second.
+        """
+        import seaborn as sns
+
+        sns.set_style('whitegrid')
+
+        animation = FuncAnimation(plt.gcf(), self._live_plot_update, interval=1000)
+        plt.show()
+        plt.close()
 
     def run_program(self) -> bool:
         """Running the Program.
@@ -81,12 +101,15 @@ class RunProgram:
         data.
         Et the end the the Nucleo is stopped and the port is closed.
         """
+        thread_animate = Thread(target=self._live_plot, args=())
+        thread_animate.start()
+
         usb = serial.Serial(self.data.nucleo, 115200, timeout=2)
         usb.reset_output_buffer()
         usb.flushOutput()
         usb.flush()
         nucleo = io.TextIOWrapper(io.BufferedRWPair(usb, usb))
-        thread_relays = Thread(target=self._start, args=(self.data.new_measurement.h_length,))
+        thread_relays = Thread(target=self._start, args=(self.data.new_measurement.h_length, ))
 
         # Starting the Nucleo and the thread:
         nucleo.write(str(self._output_mode) + "\n")
@@ -98,8 +121,8 @@ class RunProgram:
                 data = nucleo.readline()
                 split_data = data.split(' ')
 
-                self.raw_current[i] = int(split_data[0])
-                self.raw_voltage[i] = int(split_data[1])
+                self.current[i] = (int(split_data[0]) - 2836) * 0.000805664 / 0.185
+                self.voltage[i] = int(split_data[1]) * 0.000805664 / 0.195
                 self.raw_rpm[i] = int(split_data[2])
 
         except ValueError:                  # Sometime the Nucleo returns invalid data
@@ -120,21 +143,15 @@ class RunProgram:
 
     def _start(self, duration: int):
         """THREAD: Starting the motor."""
-        time.sleep(0.5)
+        time.sleep(1)
         self.relay_up.on()
         time.sleep(duration)
         self.relay_up.off()
 
     def _update_values(self):
         """Updating the values."""
-        for index, element in enumerate(self.raw_current):
-            self.current[index] = (element - 2755) * 0.000805664 / 0.185
-
-        for index, element in enumerate(self.raw_voltage):
-            self.voltage[index] = element * 0.000805664 / 0.195
-
         for index, element in enumerate(self.raw_rpm):
-            if element > 2000:
+            if element > 2100:
                 self.bit_rpm[index] = 1
 
         counter = 0
@@ -145,9 +162,13 @@ class RunProgram:
                     counter += 1
 
                 if index in self.frequency:
-                    current_rpm = counter / 12
-                    self.rpm.append(current_rpm * 120)
-                    counter = 0
+
+                    if index == 50 or index == 100:
+                        self.rpm.append(0)
+                    else:
+                        current_rpm = counter / 12
+                        self.rpm.append(current_rpm * 120)
+                        counter = 0
 
         except IndexError:              # If the last entry is a 1
             pass
@@ -156,14 +177,13 @@ class RunProgram:
         self.data.measured_values['Voltage'] = self.voltage
         self.data.measured_values['RPM'] = self.rpm
 
-        # self._show_raw_rpm()          Showing the raw rpm data.
+        # self._show_raw_rpm()          # Showing the raw rpm data.
 
     def _show_raw_rpm(self):
         """Showing the rpm signal as diagram.
 
         NOT USED!
         You can coll the method at the end of the _update_values method."""
-        import matplotlib.pyplot as plt
         import seaborn as sns
 
         fig, ax = plt.subplots()
@@ -172,7 +192,7 @@ class RunProgram:
 
         sns.set_style('whitegrid')
 
-        x_time = np.arange(0, self.data.new_measurement.h_length + 1.5, 0.01)
+        x_time = np.arange(0, self.data.new_measurement.h_length + 2, 0.01)
 
         ax.plot(x_time, self.raw_rpm)
 

@@ -10,19 +10,19 @@ import seaborn as sns
 
 from database.database import open_sqlite3
 
-x_time = np.arange(0, 8.5, 0.01)
+x_time = np.arange(0, 9, 0.01)
 
-current_1 = np.zeros(850)
-voltage_1 = np.zeros(850)
-power_1 = np.zeros(850)
+current_1 = np.zeros(900)
+voltage_1 = np.zeros(900)
+power_1 = np.zeros(900)
 
-current_2 = np.zeros(850)
-voltage_2 = np.zeros(850)
-power_2 = np.zeros(850)
+current_2 = np.zeros(900)
+voltage_2 = np.zeros(900)
+power_2 = np.zeros(900)
 
-current_3 = np.zeros(850)
-voltage_3 = np.zeros(850)
-power_3 = np.zeros(850)
+current_3 = np.zeros(900)
+voltage_3 = np.zeros(900)
+power_3 = np.zeros(900)
 
 
 def get_data(array: np.array, h_id: int, s_id: int):
@@ -72,19 +72,19 @@ calculate_power(current_3, voltage_3, power_3)
 
 # CALCULATING THE TORQUE:
 
-time_2 = np.arange(0, 8.5, 0.5)
+time_2 = np.arange(0, 9, 0.5)
 
-rpm_1 = np.zeros(17)
-rpm_2 = np.zeros(17)
-rpm_3 = np.zeros(17)
+rpm_1 = np.zeros(18)
+rpm_2 = np.zeros(18)
+rpm_3 = np.zeros(18)
 
-power_average_1 = np.zeros(17)
-power_average_2 = np.zeros(17)
-power_average_3 = np.zeros(17)
+power_average_1 = np.zeros(18)
+power_average_2 = np.zeros(18)
+power_average_3 = np.zeros(18)
 
-torque_1 = np.zeros(17)
-torque_2 = np.zeros(17)
-torque_3 = np.zeros(17)
+torque_1 = np.zeros(18)
+torque_2 = np.zeros(18)
+torque_3 = np.zeros(18)
 
 get_data(rpm_1, 1, 3)
 get_data(rpm_2, 5, 3)

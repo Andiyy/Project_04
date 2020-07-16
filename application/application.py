@@ -7,7 +7,7 @@ from application.frames import frame_sidebar, frame_new, frame_open
 from application.dialogs import user_dialog, new_measurement_dialog
 
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 import sys
 
 
@@ -51,7 +51,9 @@ class Application(main_window.MainWindow):
     def _connect_methods(self):
         """Connecting the widgets of the main window to the methods."""
         self.frame_sidebar.pb_h_open.clicked.connect(self._button_h_open)
+        self.frame_sidebar.pb_h_open.setShortcut(QtGui.QKeySequence('Ctrl+O'))
         self.frame_sidebar.pb_h_new.clicked.connect(self._button_h_new)
+        self.frame_sidebar.pb_h_new.setShortcut(QtGui.QKeySequence('Ctrl+N'))
 
     def _button_h_open(self):
         """Updating the main window and showing the open frame."""

@@ -5,20 +5,21 @@
 from application.run import RunProgram
 from database.database import open_sqlite3
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
 
 class FrameNew(QtWidgets.QFrame):
     """The visual layout of the GUI."""
     def __init__(self, data, main_window):
         QtWidgets.QFrame.__init__(self)
-        self._create_widgets()
-        self._connect_methods()
 
         self.data = data
         self.main_window = main_window
 
         self.run = None
+
+        self._create_widgets()
+        self._connect_methods()
 
     def _create_widgets(self):
         """Creating the widgets."""

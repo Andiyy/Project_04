@@ -38,18 +38,34 @@ class FrameOpen(QtWidgets.QFrame):
         self.list_widget.doubleClicked.connect(self._lw_open_old)
 
     def _lw_open_old(self):
-        """Open the old measurement."""
+        """Open the old measurement.
+
+        Creting all arrays:
+        Nucleo:     100Hz
+        Idle:       1s at the start/end
+
+        amount_steps:   *100    -> Nucleo
+                        +200    -> idle
+        Time:           +2      -> idle
+                        0.01    -> Nucleo
+        RPM:            *2      -> Average all 0.5 seconds
+                        +4      -> idle
+        rpm_time:       +2      -> idle
+                        0.5     -> Average all 0.5 seconds
+
+        Downloading data from the database.
+        """
         index = self.list_widget.currentRow()
         self.data.plot_measurement['m_header'] = self.data.old_measurement[index]
 
-        amount_steps = self.data.plot_measurement['m_header'].h_length * 100 + 150
+        amount_steps = self.data.plot_measurement['m_header'].h_length * 100 + 200
 
-        self.data.plot_measurement['Time'] = np.arange(0, self.data.plot_measurement['m_header'].h_length + 1.5, 0.01)
+        self.data.plot_measurement['Time'] = np.arange(0, self.data.plot_measurement['m_header'].h_length + 2, 0.01)
         self.data.plot_measurement['Current'] = np.zeros(amount_steps)
         self.data.plot_measurement['Voltage'] = np.zeros(amount_steps)
         self.data.plot_measurement['Power'] = np.zeros(amount_steps)
-        self.data.plot_measurement['RPM'] = np.zeros(self.data.plot_measurement['m_header'].h_length * 2 + 3)
-        self.data.plot_measurement['rpm_time'] = np.arange(0, self.data.plot_measurement['m_header'].h_length + 1.5, 0.5)
+        self.data.plot_measurement['RPM'] = np.zeros(self.data.plot_measurement['m_header'].h_length * 2 + 4)
+        self.data.plot_measurement['rpm_time'] = np.arange(0, self.data.plot_measurement['m_header'].h_length + 2, 0.5)
 
         # Database:
         with open_sqlite3() as cursor:
@@ -80,14 +96,18 @@ class FrameOpen(QtWidgets.QFrame):
         self._plot()
 
     def _calculate_power(self):
-        """"""
+        """Calculating the power."""
         for index in range(len(self.data.plot_measurement['Power'])):
             self.data.plot_measurement['Power'][index] = \
                 self.data.plot_measurement['Current'][index] * self.data.plot_measurement['Voltage'][index]
 
-    def test(self):
-        """"""
-        average_power = []  # np.zeros(int(len(power)/50))
+    def _calculate_moment(self):
+        """Calculating the moment.
+        NOT USED!
+
+        Calculating the average power and rpm (all 0.5s) and then calculating the moment.
+        """
+        average_power = []
         reset_counter = np.arange(0, len(self.data.plot_measurement['Power']), 50)
 
         counter = 0
@@ -114,12 +134,11 @@ class FrameOpen(QtWidgets.QFrame):
 
     def _plot(self):
         """Opening the plot."""
-        # self.test()
+        # self._calculate_moment()
 
         sns.set_style('whitegrid')
 
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
-        #
 
         fig.dpi = 100
 

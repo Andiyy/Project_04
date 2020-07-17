@@ -9,7 +9,6 @@ from collections import namedtuple
 import numpy as np
 import seaborn as sns
 import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
@@ -51,8 +50,8 @@ class FrameOpen(QtWidgets.QFrame):
         Time:           +2      -> idle
                         0.01    -> Nucleo
         RPM:            *2      -> Average all 0.5 seconds
-                        +4      -> idle
-        rpm_time:       +2      -> idle
+                        +5      -> idle
+        rpm_time:       +2.5    -> idle
                         0.5     -> Average all 0.5 seconds
 
         Downloading data from the database.
@@ -66,8 +65,9 @@ class FrameOpen(QtWidgets.QFrame):
         self.data.plot_measurement['Current'] = np.zeros(amount_steps)
         self.data.plot_measurement['Voltage'] = np.zeros(amount_steps)
         self.data.plot_measurement['Power'] = np.zeros(amount_steps)
-        self.data.plot_measurement['RPM'] = np.zeros(self.data.plot_measurement['m_header'].h_length * 2 + 4)
-        self.data.plot_measurement['rpm_time'] = np.arange(0, self.data.plot_measurement['m_header'].h_length + 2, 0.5)
+        self.data.plot_measurement['RPM'] = np.zeros(self.data.plot_measurement['m_header'].h_length * 2 + 5)
+        self.data.plot_measurement['rpm_time'] = \
+            np.arange(0, self.data.plot_measurement['m_header'].h_length + 2.5, 0.5)
 
         # Database:
         with open_sqlite3() as cursor:
@@ -107,35 +107,21 @@ class FrameOpen(QtWidgets.QFrame):
         """Calculating the moment.
         NOT USED!
 
-        Calculating the average power and rpm (all 0.5s) and then calculating the moment.
+        Calculating the average power and rpm and then calculating the moment.
         """
-        average_power = []
-        reset_counter = np.arange(0, len(self.data.plot_measurement['Power']), 50)
+        print("Current: ")
+        print(sum(self.data.plot_measurement['Current'][74:-120]) / len(self.data.plot_measurement['Current'][74:-120]))
 
-        counter = 0
+        ap = sum(self.data.plot_measurement['Power'][74:-120])/len(self.data.plot_measurement['Power'][74:-120])
+        arpm = sum(self.data.plot_measurement['RPM'][2:-2])/len(self.data.plot_measurement['RPM'][2:-2])
 
-        for index, item in enumerate(self.data.plot_measurement['Power']):
-            counter += item
-            if index in reset_counter:
-                counter /= 50
-                average_power.append(counter)
-                counter = 0
-
-        moment = np.zeros(len(average_power))
-
-        for i in range(len(moment)):
-            moment[i] = (average_power[i] * 9.55) / self.data.plot_measurement['RPM'][i]
-
-        fig, ax = plt.subplots()
-        ax.plot(np.arange(len(average_power)), average_power)
-        ax.plot(np.arange(len(average_power)), self.data.plot_measurement['RPM'])
-        ax.plot(np.arange(len(average_power)), moment)
-
-        ax.grid()
-        plt.show()
+        print("Moment: ")
+        print(ap*9.55/arpm)
 
     def _plot(self):
         """Opening the plot."""
+        matplotlib.rcParams.update({'font.size': 25})
+
         # self._calculate_moment()
 
         sns.set_style('whitegrid')
@@ -144,21 +130,20 @@ class FrameOpen(QtWidgets.QFrame):
 
         fig.dpi = 100
 
+        ax1.set_title(f'{self.data.plot_measurement["m_header"].h_weight} - kg')
+
         ax1.plot(self.data.plot_measurement['Time'], self.data.plot_measurement['Voltage'], '-', color='b')
-        ax1.set_xlabel('Time in s')
         ax1.set_ylabel('Voltage in V')
 
         ax2.plot(self.data.plot_measurement['Time'], self.data.plot_measurement['Current'], '-', color='r')
-        ax2.set_xlabel('Time in s')
         ax2.set_ylabel('Current in A')
 
-        ax3.plot(self.data.plot_measurement['rpm_time'], self.data.plot_measurement['RPM'], '*-', color='y')
-        ax3.set_xlabel('Time in s')
-        ax3.set_ylabel('RPM in 1/min')
+        ax3.plot(self.data.plot_measurement['Time'], self.data.plot_measurement['Power'], '-', color='g')
+        ax3.set_ylabel('Power in W')
 
-        ax4.plot(self.data.plot_measurement['Time'], self.data.plot_measurement['Power'], '-', color='g')
+        ax4.plot(self.data.plot_measurement['rpm_time'], self.data.plot_measurement['RPM'], '*-', color='y')
         ax4.set_xlabel('Time in s')
-        ax4.set_ylabel('Power in W')
+        ax4.set_ylabel('RPM in 1/min')
 
         plt.show()
 

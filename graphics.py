@@ -134,9 +134,25 @@ def calculate_torque(array_torque: np.array, array_power: np.array, array_rpm: n
             array_torque[i] = 0
 
 
-calculate_torque(torque_1, power_average_1, rpm_1)
-calculate_torque(torque_2, power_average_2, rpm_2)
-calculate_torque(torque_3, power_average_3, rpm_3)
+
+d_average_rpm_1 = sum(rpm_1)/len(rpm_1)
+d_average_rpm_2 = sum(rpm_2)/len(rpm_2)
+d_average_rpm_3 = sum(rpm_3)/len(rpm_3)
+
+l_average_rpm_1 = []
+l_average_rpm_2 = []
+l_average_rpm_3 = []
+
+
+for i in range(len(time_2)):
+    l_average_rpm_1.append(d_average_rpm_1)
+    l_average_rpm_2.append(d_average_rpm_2)
+    l_average_rpm_3.append(d_average_rpm_3)
+
+
+calculate_torque(torque_1, power_average_1, l_average_rpm_1)
+calculate_torque(torque_2, power_average_2, l_average_rpm_2)
+calculate_torque(torque_3, power_average_3, l_average_rpm_3)
 
 
 # PLOTTING THE DATA:

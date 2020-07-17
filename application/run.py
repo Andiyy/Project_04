@@ -10,10 +10,6 @@ import serial
 import io
 from threading import Thread
 import time
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 
 
 class RunProgram:
@@ -74,28 +70,6 @@ class RunProgram:
         self.rpm = []
         self.frequency = np.arange(0, self._steps, 50)
 
-    def _live_plot_update(self, _):
-        """Updating the live plot data.
-        Can only be called by the method _live_plot!
-        """
-        plt.cla()
-        plt.plot(self.time, self.current, label='Current')
-        plt.plot(self.time, self.voltage, label='Voltage')
-        plt.legend(loc='upper right')
-        plt.tight_layout()
-
-    def _live_plot(self):
-        """THREAD: Creating the live plot.
-        The graphic is updated every second.
-        """
-        import seaborn as sns
-
-        sns.set_style('whitegrid')
-
-        animation = FuncAnimation(plt.gcf(), self._live_plot_update, interval=1000)
-        plt.show()
-        plt.close()
-
     def run_program(self) -> bool:
         """Running the Program.
         First the serial port and the connected Nucleo are set up.
@@ -103,9 +77,6 @@ class RunProgram:
         data.
         Et the end the the Nucleo is stopped and the port is closed.
         """
-        thread_animate = Thread(target=self._live_plot, args=())
-        thread_animate.start()
-
         usb = serial.Serial(self.data.nucleo, 115200, timeout=2)
         usb.reset_output_buffer()
         usb.flushOutput()
@@ -186,18 +157,18 @@ class RunProgram:
 
         NOT USED!
         You can coll the method at the end of the _update_values method."""
-        import seaborn as sns
+        import matplotlib.pyplot as plt
+        import matplotlib
+        matplotlib.rcParams.update({'font.size': 25})
 
         fig, ax = plt.subplots()
 
         fig.dpi = 100
 
-        sns.set_style('whitegrid')
-
         x_time = np.arange(0, self.data.new_measurement.h_length + 2, 0.01)
 
         ax.plot(x_time, self.raw_rpm)
-
+        ax.set_title("RAW RPM - 4kg")
         ax.set_xlabel('Time in s')
         ax.set_ylabel('RPM in 1/min')
 

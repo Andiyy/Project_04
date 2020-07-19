@@ -28,7 +28,6 @@ You will find all further information in the operating instructions.
 
 - In the folder ```./application``` are all GUI related files. 
 - In the folder ```./database``` is the database and a program to query the database with Python. 
-- In the folder ```./nucleo``` is the program for the Nucleo. 
 - In the folder ```./src``` are the user manuals and various text files. 
 - In the folder ```./test``` are test programs for the Nucleo and for the data evaluation. 
 

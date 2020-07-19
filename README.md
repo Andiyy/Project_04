@@ -60,6 +60,6 @@ Then import all other modules.
 
 ## Author
 
-**Initial Work**: Andreas Venturini
+**Initial Work**: Andreas Venturini <br>
 **Commits**: Team MM1 
 

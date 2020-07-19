@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Showing different plots."""
+"""Showing different plots for the documentation."""
 
 import time
 import numpy as np
@@ -68,6 +68,7 @@ plot_data(x_time, y_current, "Current - 4kg", "Time in s", "Current in A", 'r')
 get_data(y_voltage, 8, 2)
 plot_data(x_time, y_voltage, "Voltage - 4kg", "Time in s", "Voltage in V", 'b')
 
+# Calculating the power:
 for i in range(len(y_power)):
     y_power[i] = y_current[i] * y_voltage[i]
 
